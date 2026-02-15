@@ -1,10 +1,10 @@
 const films = [
   {
-    title: 'Neon Quiet',
-    role: 'Director • 2025 • 12 min',
+    title: 'northern mockingbird.',
+    role: '2025 • 3 min',
     statement:
-      'A portrait of night workers searching for stillness in a city that never powers down.',
-    video: 'https://www.youtube.com/embed/6stlCkUDG_s?autoplay=1'
+      'finding the bird.',
+    video: 'https://www.youtube.com/watch?v=4uJzOTmVHKQ'
   },
   {
     title: 'After the Last Reel',
