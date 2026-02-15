@@ -145,6 +145,10 @@ h2 {
 }
 
 .section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: 1rem;
   margin-bottom: 2rem;
 }
 
@@ -338,5 +342,10 @@ h2 {
 
   .site-nav.open {
     display: flex;
+  }
+
+  .section-head {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }
