@@ -4,7 +4,7 @@ const films = [
     role: '2025 • 3 min',
     statement:
       'finding the bird.',
-    video: 'https://www.youtube.com/watch?v=4uJzOTmVHKQ'
+    video: 'https://www.youtube.com/embed/4uJzOTmVHKQ?autoplay=1'
   },
   {
     title: 'After the Last Reel',
