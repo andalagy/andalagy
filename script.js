@@ -233,6 +233,11 @@ function buildEmbedSrc(videoId) {
   return `https://www.youtube-nocookie.com/embed/${encodeURIComponent(videoId)}`;
 }
 
+function parseVideoIdFromUrl(url) {
+  const parsedId = window.YouTubeUtils?.extractYouTubeVideoId(url) || null;
+  return assertYouTubeId(parsedId) ? parsedId : null;
+}
+
 function escapeHtml(text) {
   return String(text)
     .replaceAll('&', '&amp;')
@@ -244,11 +249,16 @@ function escapeHtml(text) {
 
 function normalizeFilmData(rawFilms) {
   return rawFilms.map((film) => {
-    const normalizedId = assertYouTubeId(film.id) ? film.id : null;
+    const normalizedId = assertYouTubeId(film.id) ? film.id : parseVideoIdFromUrl(film.videoUrl || '');
+    const yearLabel = Number.isInteger(film.year) ? String(film.year) : null;
+    const runtimeLabel = typeof film.runtime === 'string' && film.runtime.trim() ? film.runtime.trim() : null;
+    const roleLabel = typeof film.role === 'string' && film.role.trim() ? film.role.trim() : 'Director';
+    const details = [roleLabel, yearLabel, runtimeLabel].filter(Boolean).join(' • ');
 
     return {
       ...film,
       videoId: normalizedId,
+      details,
       thumbnailCandidates: getDeterministicThumbnailFallbacks(normalizedId),
       thumbnailUrl: assertYouTubeId(normalizedId)
         ? `https://img.youtube.com/vi/${encodeURIComponent(normalizedId)}/hqdefault.jpg`
@@ -311,7 +321,7 @@ function renderVideoDetailFullScreen(film) {
           <p class="eyebrow">Video Detail</p>
           <h2 id="video-detail-title">${escapeHtml(film.title)}</h2>
           <p>${escapeHtml(film.statement || 'No description available.')}</p>
-          <p class="video-detail-role">${escapeHtml(film.role || 'Metadata unavailable')}</p>
+          <p class="video-detail-role">${escapeHtml(film.details || film.role || 'Metadata unavailable')}</p>
         </div>
       </div>
     </section>`;
@@ -320,7 +330,27 @@ function renderVideoDetailFullScreen(film) {
 function openVideoDetail(videoId, { shouldNavigate = true, triggerElement = null } = {}) {
   const film = getFilmByVideoId(videoId);
   if (!film) {
-    console.error(`[film-site] Video detail requested for unknown ID "${videoId}".`);
+    const container = ensureVideoDetailContainer();
+    container.hidden = false;
+    container.innerHTML = `
+      <section class="video-detail" role="dialog" aria-modal="true" aria-labelledby="video-detail-title">
+        <button class="video-detail-close clickable" type="button" aria-label="Back to films">← Back</button>
+        <div class="video-detail-content">
+          <div class="video-detail-meta draft-panel video-not-found">
+            <p class="eyebrow">Video Detail</p>
+            <h2 id="video-detail-title">Film not found</h2>
+            <p>This film could not be found in the shared film catalogue.</p>
+            <p class="video-detail-role">Check the film ID in the URL or update <code>films.js</code>.</p>
+          </div>
+        </div>
+      </section>`;
+    container.classList.add('open');
+    document.body.classList.add('video-detail-open');
+    appRouteState.activeFilmId = null;
+    if (shouldNavigate && getAppRoute().filmId !== videoId) {
+      history.pushState({ videoId }, '', `/films/${encodeURIComponent(videoId)}`);
+      applyRouteLayout(getAppRoute());
+    }
     return;
   }
 
@@ -356,7 +386,7 @@ function createVideoCard(film) {
       </div>
       <div class="film-meta">
         <h3><a class="film-title-link clickable" href="/films/${id}" data-video-detail-link="${id}">${escapeHtml(film.title)}</a></h3>
-        <p>${escapeHtml(film.role)}</p>
+        <p>${escapeHtml(film.details || film.role || '')}</p>
       </div>
     </article>`;
 }
