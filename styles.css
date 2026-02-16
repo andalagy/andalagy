@@ -15,29 +15,7 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--text);
-  font-family: "Space Grotesk", sans-serif;
-}
-
-*,
-*::before,
-*::after {
-  cursor: none !important;
-}
-
-button:hover,
-button:hover *,
-a:hover,
-a:hover *,
-[role="button"]:hover,
-[role="button"]:hover *,
-.clickable:hover,
-.clickable:hover * {
-  cursor: pointer !important;
-}
-
-body.cursor-visible,
-body.cursor-visible * {
-  cursor: pointer !important;
+  font-family: 'Space Grotesk', sans-serif;
 }
 
 img,
@@ -51,7 +29,7 @@ video {
   inset: 0;
   pointer-events: none;
   opacity: 0.06;
-  background-image: url("https://www.transparenttextures.com/patterns/asfalt-dark.png");
+  background-image: url('https://www.transparenttextures.com/patterns/asfalt-dark.png');
   z-index: 100;
 }
 
@@ -148,7 +126,7 @@ video {
 h1,
 h2,
 h3 {
-  font-family: "Syne", sans-serif;
+  font-family: 'Syne', sans-serif;
   margin: 0 0 1rem;
   line-height: 1.06;
 }
@@ -196,39 +174,74 @@ h2 {
 .film-grid {
   display: grid;
   gap: 1rem;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
 }
 
 .film-card {
-  position: relative;
   border-radius: 16px;
   overflow: hidden;
-  cursor: pointer;
-  min-height: 320px;
+  border: 1px solid #2a2a2a;
+  background: #111;
 }
 
-.film-card img {
+.video-shell {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  background: #000;
+}
+
+.video-shell iframe,
+.video-shell img,
+.video-shell button {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
+}
+
+.video-shell img {
   object-fit: cover;
-  transition: transform 0.5s ease;
+}
+
+.play-video {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  color: inherit;
+}
+
+/* Overlay elements ignore pointer events so the click lands on the button without interfering with custom cursors. */
+.video-overlay,
+.video-overlay * {
+  pointer-events: none;
+}
+
+.video-overlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.15), rgba(0, 0, 0, 0.55));
+}
+
+.play-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: rgba(0, 0, 0, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  font-size: 1.4rem;
 }
 
 .film-meta {
-  position: absolute;
-  inset: auto 0 0;
-  padding: 1rem;
-  background: linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.82));
-  transform: translateY(100%);
-  transition: transform 0.35s ease;
+  padding: 0.9rem 1rem 1rem;
 }
 
-.film-card:hover img {
-  transform: scale(1.07);
-}
-
-.film-card:hover .film-meta {
-  transform: translateY(0);
+.film-meta p {
+  margin: 0;
+  color: var(--muted);
 }
 
 .project-track {
@@ -279,51 +292,8 @@ h2 {
   padding-bottom: 7rem;
 }
 
-.film-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.92);
-  z-index: 55;
-  padding: 8vh 6vw;
-  display: none;
-}
-
-.film-overlay.open {
-  display: block;
-}
-
-.close-overlay {
-  position: absolute;
-  top: 1.5rem;
-  right: 5vw;
-  background: transparent;
-  color: var(--text);
-  border: 1px solid #555;
-  padding: 0.5rem 0.9rem;
-}
-
-.overlay-content {
-  display: grid;
-  grid-template-columns: 1.2fr 1fr;
-  gap: 2rem;
-  margin-top: 2rem;
-}
-
-.video-wrap {
-  position: relative;
-  padding-top: 56.25%;
-}
-
-.video-wrap iframe {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-}
-
 @media (max-width: 900px) {
-  .about-layout,
-  .overlay-content {
+  .about-layout {
     grid-template-columns: 1fr;
   }
 }
