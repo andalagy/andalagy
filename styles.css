@@ -234,23 +234,21 @@ h2 {
 
 .video-shell iframe,
 .video-shell img,
-.video-shell button {
+.video-shell .video-thumb-link {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
 }
 
+.video-shell .video-thumb-link {
+  display: block;
+}
+
 .video-shell img {
   object-fit: cover;
 }
 
-.play-video {
-  border: 0;
-  background: transparent;
-  padding: 0;
-  color: inherit;
-}
 
 /* Overlay elements ignore pointer events so the click lands on the button without interfering with custom cursors. */
 .video-overlay,
