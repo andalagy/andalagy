@@ -220,27 +220,11 @@ function initializeGlobalCursorLock(customConfig = {}) {
 }
 
 function parseVideoId(url) {
-  try {
-    const parsed = new URL(url);
+  return window.YouTubeUtils?.extractYouTubeVideoId(url) || null;
+}
 
-    if (parsed.hostname.includes('youtu.be')) {
-      return parsed.pathname.replace('/', '').split('/')[0] || null;
-    }
-
-    const fromQuery = parsed.searchParams.get('v');
-    if (fromQuery) return fromQuery;
-
-    const pathParts = parsed.pathname.split('/').filter(Boolean);
-    const embedIndex = pathParts.indexOf('embed');
-    if (embedIndex >= 0 && pathParts[embedIndex + 1]) {
-      return pathParts[embedIndex + 1];
-    }
-
-    return null;
-  } catch (error) {
-    console.error('[film-site] Could not parse YouTube URL:', url, error);
-    return null;
-  }
+function getThumbnailCandidates(videoId) {
+  return window.YouTubeUtils?.getYouTubeThumbnailCandidates(videoId) || [];
 }
 
 
@@ -551,33 +535,39 @@ function createVideoCard(film) {
     return '';
   }
 
-  const maxres = `https://img.youtube.com/vi/${id}/maxresdefault.jpg`;
-  const hq = `https://img.youtube.com/vi/${id}/hqdefault.jpg`;
+  const thumbnailCandidates = getThumbnailCandidates(id);
+  const [preferredThumbnail] = thumbnailCandidates;
+
+  if (!preferredThumbnail) {
+    console.error(`[film-site] Skipping film card because thumbnails could not be generated for "${film.title}".`);
+    return '';
+  }
 
   // Preview environments sometimes load scripts before HTML is fully parsed.
   // Rendering plain markup and binding click handlers later prevents live-site race conditions.
+  // We generate direct YouTube image URLs ourselves because embed/oEmbed preview metadata can vary and be cached inconsistently.
   return `
     <article class="film-card" data-video-id="${id}">
       <div class="video-shell">
-        <button
-          class="play-video clickable"
-          type="button"
-          aria-label="${film.isEmbeddable ? `Play ${film.title}` : `Watch ${film.title} on YouTube` }"
-          data-video-id="${id}"
-          data-watch-url="${film.watchUrl}"
-          data-embeddable="${film.isEmbeddable ? 'true' : 'false'}"
+        <a
+          class="video-thumb-link clickable"
+          href="${film.watchUrl}"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Watch ${film.title} on YouTube"
         >
           <img
-            src="${maxres}"
-            data-fallback-src="${hq}"
-            alt="YouTube thumbnail for ${film.title}"
+            src="${preferredThumbnail}"
+            data-thumb-candidates='${JSON.stringify(thumbnailCandidates)}'
+            data-thumb-index="0"
+            alt="${escapeHtml(film.title)}"
             loading="lazy"
             decoding="async"
           />
           <span class="video-overlay" aria-hidden="true">
             <span class="play-icon">▶</span>
           </span>
-        </button>
+        </a>
       </div>
       <div class="film-meta">
         <h3>
@@ -594,14 +584,6 @@ function createVideoCard(film) {
       </div>
     </article>
   `;
-}
-
-function openExternalVideo(url) {
-  try {
-    window.open(url, '_blank', 'noopener,noreferrer');
-  } catch (error) {
-    console.error('[film-site] Could not open external YouTube tab.', error);
-  }
 }
 
 async function initializeFilmShowcase() {
@@ -622,28 +604,20 @@ async function initializeFilmShowcase() {
       return;
     }
 
-    filmGrid.querySelectorAll('img[data-fallback-src]').forEach((image) => {
+    filmGrid.querySelectorAll('img[data-thumb-candidates]').forEach((image) => {
       image.addEventListener('error', () => {
-        const fallback = image.dataset.fallbackSrc;
-        if (!fallback || image.src === fallback) return;
-        image.src = fallback;
+        const candidates = JSON.parse(image.dataset.thumbCandidates || '[]');
+        const currentIndex = Number(image.dataset.thumbIndex || 0);
+        const nextIndex = currentIndex + 1;
+
+        if (!candidates[nextIndex]) {
+          return;
+        }
+
+        image.dataset.thumbIndex = String(nextIndex);
+        image.src = candidates[nextIndex];
       });
     });
-
-    function stopOtherVideoPlayers(activeShell) {
-      filmGrid.querySelectorAll('.video-shell iframe').forEach((iframe) => {
-        const shell = iframe.closest('.video-shell');
-        if (shell === activeShell) return;
-
-        iframe.contentWindow?.postMessage(
-          JSON.stringify({
-            event: 'command',
-            func: 'pauseVideo'
-          }),
-          '*'
-        );
-      });
-    }
 
     filmGrid.addEventListener('click', (event) => {
       const titleLink = event.target.closest('[data-video-detail-link]');
@@ -657,41 +631,7 @@ async function initializeFilmShowcase() {
         openVideoDetail(titleLink.dataset.videoDetailLink, {
           triggerElement: titleLink
         });
-        return;
       }
-
-      const button = event.target.closest('.play-video');
-      if (!button) return;
-
-      const videoId = button.dataset.videoId;
-      if (!videoId) {
-        console.error('[film-site] Play button clicked without a data-video-id.');
-        return;
-      }
-
-      const shell = button.closest('.video-shell');
-      if (!shell) {
-        console.error('[film-site] Could not find .video-shell for selected video.');
-        return;
-      }
-
-      const isEmbeddable = button.dataset.embeddable === 'true';
-      if (!isEmbeddable) {
-        openExternalVideo(button.dataset.watchUrl || toWatchUrl(videoId));
-        return;
-      }
-
-      stopOtherVideoPlayers(shell);
-
-      const iframe = document.createElement('iframe');
-      iframe.src = toEmbedUrl(videoId, { autoplay: true });
-      iframe.title = 'YouTube video player';
-      iframe.loading = 'lazy';
-      iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
-      iframe.allowFullscreen = true;
-
-      shell.innerHTML = '';
-      shell.appendChild(iframe);
     });
 
     const directVideoId = parseVideoRoute();
