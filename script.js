@@ -4,14 +4,14 @@ const films = [
     role: '2025 • 3 min',
     statement: 
       'finding the bird.',
-    videoUrl: 'https://www.youtube.com/watch?v=4uJzOTmVHKQ'
+    videoUrl: 'https://www.youtube.com/embed/4uJzOTmVHKQ'
   },
   {
     title: 'the man who waters concrete.',
     role: 'Director • 2025 • 2 min',
     statement:
       'An attempt to grow the concrete. The ending is extremely cornball, where a desperate attempt was made to save the film from bad planning.',
-    videoUrl: 'https://www.youtube.com/watch?v=qaAV4v811j8'
+    videoUrl: 'https://www.youtube.com/embed/qaAV4v811j8'
   },
   {
     title: 'Bohemian Rhapsody',
