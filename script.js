@@ -2,29 +2,30 @@ const films = [
   {
     title: 'northern mockingbird.',
     role: '2025 • 3 min',
-    statement: 'finding the bird.',
+    statement: 
+      'finding the bird.',
     videoUrl: 'https://www.youtube.com/watch?v=4uJzOTmVHKQ'
   },
   {
-    title: 'After the Last Reel',
-    role: 'Director of Photography • 2024 • 8 min',
+    title: 'the man who waters concrete.',
+    role: 'Director • 2025 • 2 min',
     statement:
-      'Shot on vintage lenses, this short tracks a projectionist closing down a neighborhood cinema.',
-    videoUrl: 'https://www.youtube.com/watch?v=jfKfPfyJRdk'
+      'An attempt to grow the concrete. The ending is extremely cornball, where a desperate attempt was made to save the film from bad planning.',
+    videoUrl: 'https://www.youtube.com/watch?v=qaAV4v811j8'
   },
   {
-    title: 'Cloudline',
-    role: 'Editor • 2023 • 15 min',
+    title: 'Bohemian Rhapsody',
+    role: 'Director • 2025 • 15 min',
     statement:
-      'An experiment in fragmented memory, assembled from interviews, diaries, and urban atmospheres.',
-    videoUrl: 'https://www.youtube.com/watch?v=tgbNymZ7vqY'
+      'A music video to portray the story behind the widely acclaimed song.',
+    videoUrl: 'https://www.youtube.com/watch?v=-vp76Gp6zoI'
   },
   {
-    title: 'Home in Transit',
-    role: 'Director / DP • 2022 • 10 min',
+    title: 'Echoes of Tommorow',
+    role: '2024 • 3 min',
     statement:
-      'A moving portrait of two siblings commuting across borders to keep family rituals alive.',
-    videoUrl: 'https://www.youtube.com/watch?v=XHOmBV4js_E'
+      'Or maybe in the future of stock footages.',
+    videoUrl: 'https://www.youtube.com/watch?v=9pLS3b_b_oM'
   }
 ];
 
