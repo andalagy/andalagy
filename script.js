@@ -724,12 +724,14 @@ function initializeCursorAndNav() {
 function initializeDirectorSlateComponent() {
   const slate = document.querySelector('[data-directors-slate]');
   const takeButton = document.querySelector('[data-slate-take]');
+  const scrollButton = document.querySelector('[data-slate-scroll]');
   const sceneNode = document.querySelector('[data-scene]');
   const takeNode = document.querySelector('[data-take]');
   const rollNode = document.querySelector('[data-roll]');
   const statementNode = document.querySelector('[data-slate-statement]');
+  const filmsSection = document.getElementById('films');
 
-  if (!slate || !takeButton || !sceneNode || !takeNode || !rollNode || !statementNode) {
+  if (!slate || !takeButton || !scrollButton || !sceneNode || !takeNode || !rollNode || !statementNode || !filmsSection) {
     return;
   }
 
@@ -747,6 +749,14 @@ function initializeDirectorSlateComponent() {
 
   const formatNumber = (value) => String(value).padStart(2, '0');
   const metadataNodes = [sceneNode, takeNode, rollNode];
+  const scrollDelayMs = 170;
+
+  const scrollToFilms = () => {
+    filmsSection.scrollIntoView({
+      behavior: prefersReducedMotion ? 'auto' : 'smooth',
+      block: 'start'
+    });
+  };
 
   const animateMetadataSwap = () => {
     metadataNodes.forEach((node) => node.classList.add('is-updating'));
@@ -775,18 +785,7 @@ function initializeDirectorSlateComponent() {
     }, 130);
   };
 
-  takeButton.addEventListener('click', () => {
-    take += 1;
-
-    if (take > 5) {
-      take = 1;
-      scene = (scene % 12) + 1;
-      roll += 1;
-    }
-
-    animateMetadataSwap();
-    animateStatementSwap();
-
+  const startClapAnimation = () => {
     slate.classList.remove('is-clapping');
 
     if (prefersReducedMotion) {
@@ -801,30 +800,49 @@ function initializeDirectorSlateComponent() {
     window.setTimeout(() => {
       slate.classList.remove('is-clapping');
     }, 340);
-  });
-}
-
-function initializeSlateGrainPreview() {
-  const grainControl = document.querySelector('[data-grain-control]');
-  const grainPreview = document.querySelector('[data-grain-preview]');
-
-  if (!grainControl || !grainPreview) {
-    return;
-  }
-
-  const root = document.documentElement;
-  const minValue = Number(grainControl.min || 0);
-  const maxValue = Number(grainControl.max || 100);
-
-  const setGrainIntensity = () => {
-    const rawValue = Number(grainControl.value);
-    const normalizedValue = (rawValue - minValue) / (maxValue - minValue || 1);
-    const intensity = 0.12 + normalizedValue * 0.7;
-    root.style.setProperty('--grain-intensity', intensity.toFixed(3));
   };
 
-  setGrainIntensity();
-  grainControl.addEventListener('input', setGrainIntensity, { passive: true });
+  const triggerScrollAfterClap = () => {
+    if (prefersReducedMotion) {
+      scrollToFilms();
+      return;
+    }
+
+    window.setTimeout(scrollToFilms, scrollDelayMs);
+  };
+
+  const handleTakeInteraction = () => {
+    take += 1;
+
+    if (take > 5) {
+      take = 1;
+      scene = (scene % 12) + 1;
+      roll += 1;
+    }
+
+    animateMetadataSwap();
+    animateStatementSwap();
+    startClapAnimation();
+    triggerScrollAfterClap();
+  };
+
+  takeButton.addEventListener('click', handleTakeInteraction);
+
+  const handleSlateSurfaceInteraction = () => {
+    startClapAnimation();
+    triggerScrollAfterClap();
+  };
+
+  slate.addEventListener('click', (event) => {
+    if (event.target.closest('button, a, input, textarea, select')) {
+      return;
+    }
+
+    handleSlateSurfaceInteraction();
+  });
+  scrollButton.addEventListener('click', () => {
+    handleSlateSurfaceInteraction();
+  });
 }
 
 // Waiting for DOMContentLoaded ensures element queries are reliable in production where scripts can execute earlier than expected.
@@ -832,7 +850,6 @@ document.addEventListener('DOMContentLoaded', () => {
   initializeGlobalCursorLock(window.CURSOR_LOCK_CONFIG);
   void initializeFilmShowcase();
   initializeDirectorSlateComponent();
-  initializeSlateGrainPreview();
   initializeAnimation();
   initializeSmoothScroll();
   initializeContactCta();
