@@ -18,6 +18,8 @@ const SLATE_META = {
   takeRange: [1, 12]
 };
 
+const SLATE_PRIMARY_FIELDS = ['scene', 'take', 'roll'];
+
 const app = document.querySelector('#app');
 const cursor = document.querySelector('.cursor');
 const ambientLeak = document.querySelector('.ambient-leak');
@@ -108,10 +110,8 @@ function currentSlateValues() {
 
 function slateMetaMarkup() {
   const values = currentSlateValues();
-  const fields = [
-    ['scene', values.scene],
-    ['take', values.take],
-    ['roll', values.roll],
+  const primaryFields = SLATE_PRIMARY_FIELDS.map((label) => [label, values[label]]);
+  const extraFields = [
     ['date', values.date],
     ['time', values.time],
     ['fps', values.format],
@@ -119,12 +119,21 @@ function slateMetaMarkup() {
     ['location', values.location],
     ['status', values.status]
   ];
-  return `<dl class="slate-meta" aria-label="slate metadata">${fields
+  return `<dl class="slate-meta" aria-label="slate metadata">${primaryFields
     .map(
       ([label, value]) =>
         `<div class="slate-chip"><dt>${label}</dt><dd class="slate-meta-value" data-slate-value="${label}">${value}</dd></div>`
     )
-    .join('')}</dl>`;
+    .join('')}</dl>
+    <details class="slate-extra-meta">
+      <summary>more slate info</summary>
+      <dl>${extraFields
+        .map(
+          ([label, value]) =>
+            `<div class="slate-chip slate-chip-ghost"><dt>${label}</dt><dd class="slate-meta-value" data-slate-value="${label}">${value}</dd></div>`
+        )
+        .join('')}</dl>
+    </details>`;
 }
 
 function advanceSlateTake() {
@@ -166,47 +175,69 @@ function isValidVideoId(id) {
   return typeof id === 'string' && YOUTUBE_ID_REGEX.test(id);
 }
 
+function cleanVideoId(id) {
+  const raw = String(id || '').trim();
+  if (isValidVideoId(raw)) return raw;
+
+  const utils = window.YouTubeUtils;
+  if (utils?.extractYouTubeVideoId) {
+    const extracted = utils.extractYouTubeVideoId(raw);
+    if (isValidVideoId(extracted)) return extracted;
+  }
+
+  const cleaned = raw.split(/[?&#/]/)[0];
+  return isValidVideoId(cleaned) ? cleaned : '';
+}
+
 function buildEmbedSrc(id) {
   return `https://www.youtube-nocookie.com/embed/${id}?rel=0&modestbranding=1`;
 }
 
 function buildWatchUrl(id) {
-  return `https://www.youtube.com/watch?v=${id}`;
+  const safeId = cleanVideoId(id);
+  return `https://www.youtube.com/watch?v=${safeId}`;
 }
 
 function thumbCandidates(id) {
-  return ['maxresdefault', 'hqdefault', 'mqdefault', 'default'].map(
-    (size) => `https://img.youtube.com/vi/${encodeURIComponent(id)}/${size}.jpg`
+  const safeId = cleanVideoId(id);
+  if (!safeId) return [];
+  return ['hqdefault', 'mqdefault', 'default'].map(
+    (size) => `https://img.youtube.com/vi/${encodeURIComponent(safeId)}/${size}.jpg`
   );
 }
 
 function renderYouTubeThumbnail({ id, alt, className = '', loading = 'lazy' }) {
-  const safeId = String(id || '').trim();
+  const safeId = cleanVideoId(id);
+  if (!safeId) return `<div class="thumb-placeholder" role="img" aria-label="${alt}"></div>`;
   const thumbs = thumbCandidates(safeId);
   const classes = className ? ` class="${className}"` : '';
   return `<img${classes} src="" alt="${alt}" loading="${loading}" data-youtube-thumb="1" data-youtube-id="${safeId}" data-thumbs="${thumbs.join('|')}" data-thumb-index="0" data-thumb-key="${safeId}-0" />`;
 }
 
 function filmDetailPath(id) {
-  return `/films/${encodeURIComponent(id)}`;
+  const safeId = cleanVideoId(id);
+  return `/films/${encodeURIComponent(safeId)}`;
 }
 
 function filmCard(film) {
+  const cleanId = cleanVideoId(film.id);
+  if (!cleanId) return '';
   const details = `${film.year} · ${film.runtime} · ${film.role}`;
-  const thumbs = thumbCandidates(film.id);
+  const thumbs = thumbCandidates(cleanId);
   const preview = thumbs[1] || thumbs[0];
-  const filmPath = filmDetailPath(film.id);
+  const filmPath = filmDetailPath(cleanId);
   const offsetX = Math.round(((film.title.length % 5) - 2) * 1.3);
   const offsetY = Math.round(((film.year || 0) % 3) - 1);
+  const tilt = (((film.title.length + (film.year || 0)) % 11) - 5) * 0.8;
   return `<article class="film-card" style="--card-shift-x:${offsetX}px;--card-shift-y:${offsetY}px">
-      <a href="${toUrl(filmPath)}" data-link="${filmPath}" class="film-link" data-preview="${preview}">
-        ${renderYouTubeThumbnail({ id: film.id, alt: `${lower(film.title)} thumbnail` })}
+      <a href="${toUrl(filmPath)}" data-link="${filmPath}" class="film-link" data-preview="${preview}" style="--film-tilt:${tilt.toFixed(2)}deg;--film-overlap:${(offsetY * -3).toFixed(0)}px;">
+        ${renderYouTubeThumbnail({ id: cleanId, alt: `${lower(film.title)} thumbnail` })}
         <span class="film-overlay">
           <span>${lower(film.statement)}</span>
           <small>${lower(details)}</small>
         </span>
       </a>
-      <h3 data-title="${lower(film.title)}">${lower(film.title)}</h3>
+      <h3 data-title="${lower(film.title)}" data-glitch="${lower(film.title)}">${lower(film.title)}</h3>
     </article>`;
 }
 
@@ -293,21 +324,22 @@ function filmsView() {
 }
 
 function filmDetailView(id) {
-  if (!id) return `<section class="page-section"><h1>film not found</h1></section>`;
-  const film = FILMS.find((item) => item.id === id);
+  const cleanId = cleanVideoId(id);
+  if (!cleanId) return `<section class="page-section"><h1>film not found</h1></section>`;
+  const film = FILMS.find((item) => cleanVideoId(item.id) === cleanId);
   if (!film) return `<section class="page-section"><h1>film not found</h1></section>`;
-  const validId = isValidVideoId(film.id);
-  const embedSrc = validId ? buildEmbedSrc(film.id) : '';
+  const validId = isValidVideoId(cleanId);
+  const embedSrc = validId ? buildEmbedSrc(cleanId) : '';
 
-  logDev('render detail', { id: film.id, embedSrc, validId });
+  logDev('render detail', { id: cleanId, embedSrc, validId });
 
   return `<section class="page-section detail">
     <a class="back-link" href="${toUrl('/films')}" data-link="/films">back</a>
-    <div class="player-wrap" data-player-wrap data-film-id="${film.id}" data-state="${validId ? 'embed' : 'fallback'}">
+    <div class="player-wrap" data-player-wrap data-film-id="${cleanId}" data-state="${validId ? 'embed' : 'fallback'}">
       <div class="player-ratio">
         ${
           validId
-            ? `<iframe key="${film.id}" data-film-iframe data-film-id="${film.id}" src="${embedSrc}" title="${lower(
+            ? `<iframe key="${cleanId}" data-film-iframe data-film-id="${cleanId}" src="${embedSrc}" title="${lower(
                 film.title
               )}" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>`
             : filmFallbackView(film, 'invalid id')
@@ -426,6 +458,7 @@ function bindDynamicInteractions() {
   if (quote) quote.remove();
 
   setupSlateLightSeed();
+  applyDreamOffsets();
 
   document.querySelectorAll('.film-link').forEach((link) => {
     const preview = link.dataset.preview;
@@ -457,40 +490,10 @@ function initYouTubeThumbnailFallbacks() {
     const list = thumbCandidates(id);
     if (!list.length) return;
 
-    const currentId = img.dataset.activeYoutubeId || '';
-    if (currentId !== id) {
-      img.dataset.activeYoutubeId = id;
-      img.dataset.thumbIndex = '0';
-      img.dataset.thumbKey = `${id}-0`;
-      img.dataset.thumbs = list.join('|');
-      img.removeAttribute('src');
-      img.dataset.thumbResolved = '0';
+    const selected = list[0];
+    if (img.getAttribute('src') !== selected) {
+      img.src = selected;
     }
-
-    if (img.dataset.thumbResolved === '1') return;
-
-    const tryThumb = (index) => {
-      const activeList = (img.dataset.thumbs || '').split('|').filter(Boolean);
-      const candidate = activeList[index];
-      if (!candidate) {
-        img.dataset.thumbResolved = '1';
-        return;
-      }
-
-      const probe = new Image();
-      probe.onload = () => {
-        img.dataset.thumbIndex = String(index);
-        img.dataset.thumbKey = `${id}-${index}`;
-        img.src = candidate;
-        img.dataset.thumbResolved = '1';
-      };
-      probe.onerror = () => {
-        tryThumb(index + 1);
-      };
-      probe.src = candidate;
-    };
-
-    tryThumb(Number(img.dataset.thumbIndex || 0));
   });
 }
 
@@ -510,13 +513,38 @@ function setupSlateLightSeed() {
   slate.style.setProperty('--slate-delay-c', `${delayC}s`);
 }
 
+function applyDreamOffsets() {
+  if (reduceMotion) return;
+
+  document.querySelectorAll('.film-card').forEach((card, index) => {
+    const spin = ((Math.random() * 8) - 4).toFixed(2);
+    const driftX = ((Math.random() * 18) - 9).toFixed(0);
+    const driftY = ((Math.random() * 16) - 8).toFixed(0);
+    card.style.setProperty('--card-rotate', `${spin}deg`);
+    card.style.setProperty('--card-shift-x', `${driftX}px`);
+    card.style.setProperty('--card-shift-y', `${driftY}px`);
+    card.style.setProperty('--card-stack', String(index % 3));
+  });
+
+  const title = document.querySelector('.slate h1');
+  if (title) {
+    title.setAttribute('data-glitch', lower(title.textContent));
+    title.style.setProperty('--title-tilt', `${((Math.random() * 6) - 3).toFixed(2)}deg`);
+  }
+
+  const root = document.documentElement;
+  root.style.setProperty('--gradient-jitter-a', `${((Math.random() * 22) - 11).toFixed(2)}%`);
+  root.style.setProperty('--gradient-jitter-b', `${((Math.random() * 24) - 12).toFixed(2)}%`);
+  root.style.setProperty('--leak-spin', `${((Math.random() * 7) - 3.5).toFixed(2)}deg`);
+}
+
 function setupFilmEmbedFallback() {
   const wrap = document.querySelector('[data-player-wrap]');
   const iframe = document.querySelector('[data-film-iframe]');
   if (!wrap) return;
 
-  const id = wrap.dataset.filmId || '';
-  const film = FILMS.find((item) => item.id === id);
+  const id = cleanVideoId(wrap.dataset.filmId || '');
+  const film = FILMS.find((item) => cleanVideoId(item.id) === id);
   if (!film) return;
 
   if (!isValidVideoId(id)) {

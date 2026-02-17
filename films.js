@@ -1,8 +1,14 @@
 const FILM_ID_REGEX = /^[A-Za-z0-9_-]{11}$/;
 
+function sanitizeFilmId(value) {
+  if (typeof value !== 'string') return '';
+  const cleaned = value.trim().split(/[?&#/]/)[0];
+  return FILM_ID_REGEX.test(cleaned) ? cleaned : '';
+}
+
 function deriveFilmId(film) {
-  const directId = typeof film.id === 'string' ? film.id.trim() : '';
-  if (FILM_ID_REGEX.test(directId)) return directId;
+  const directId = sanitizeFilmId(film.id);
+  if (directId) return directId;
 
   const utils = window.YouTubeUtils;
   if (utils?.extractYouTubeVideoId) {
@@ -13,7 +19,7 @@ function deriveFilmId(film) {
     if (fromEmbedUrl) return fromEmbedUrl;
   }
 
-  return directId;
+  return '';
 }
 
 const RAW_FILMS = [
@@ -54,7 +60,7 @@ const RAW_FILMS = [
 window.FILMS_DATA = RAW_FILMS.map((film) => ({
   ...film,
   id: deriveFilmId(film)
-}));
+})).filter((film) => FILM_ID_REGEX.test(film.id));
 
 if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
   window.FILMS_DATA.forEach((film) => {
