@@ -203,7 +203,7 @@ body.home-page main {
 .route-fade { opacity: 0; transform: translateY(3px); transition: opacity 0.6s ease, transform 0.6s ease; }
 .route-fade.visible { opacity: 1; transform: translateY(0); }
 
-.slate-wrap { min-height: 100svh; display: flex; align-items: center; justify-content: flex-start; padding-block: clamp(1rem, 3vh, 2rem); }
+.slate-wrap { min-height: 90svh; display: flex; align-items: center; justify-content: flex-start; padding-block: clamp(1rem, 3vh, 2rem); }
 
 .slate[data-slate] { cursor: pointer; }
 
