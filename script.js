@@ -76,14 +76,20 @@ function thumbCandidates(id) {
   );
 }
 
+function filmDetailPath(id) {
+  return `/films/${encodeURIComponent(id)}`;
+}
+
 function filmCard(film) {
   const details = `${film.year} · ${film.runtime} · ${film.role}`;
-  const preview = thumbCandidates(film.id)[1] || thumbCandidates(film.id)[0];
+  const thumbs = thumbCandidates(film.id);
+  const preview = thumbs[1] || thumbs[0];
+  const filmPath = filmDetailPath(film.id);
   const offsetX = Math.round(((film.title.length % 5) - 2) * 1.3);
   const offsetY = Math.round(((film.year || 0) % 3) - 1);
   return `<article class="film-card" style="--card-shift-x:${offsetX}px;--card-shift-y:${offsetY}px">
-      <a href="${toUrl(`/films/${encodeURIComponent(film.id)}`)}" data-link="/films/${encodeURIComponent(film.id)}" class="film-link" data-preview="${preview}">
-        <img src="${thumbCandidates(film.id)[0]}" alt="${lower(film.title)} thumbnail" data-thumbs="${thumbCandidates(film.id).join('|')}" data-thumb-index="0" loading="lazy" />
+      <a href="${toUrl(filmPath)}" data-link="${filmPath}" class="film-link" data-preview="${preview}">
+        <img src="${thumbs[0]}" alt="${lower(film.title)} thumbnail" data-thumbs="${thumbs.join('|')}" data-thumb-index="0" loading="lazy" />
         <span class="film-overlay">
           <span>${lower(film.statement)}</span>
           <small>${lower(details)}</small>
@@ -248,7 +254,10 @@ function bindDynamicInteractions() {
       const list = (img.dataset.thumbs || '').split('|').filter(Boolean);
       const index = Number(img.dataset.thumbIndex || 0);
       const next = index + 1;
-      if (!list[next]) return;
+      if (!list[next]) {
+        img.removeAttribute('data-thumbs');
+        return;
+      }
       img.dataset.thumbIndex = String(next);
       img.src = list[next];
     });
