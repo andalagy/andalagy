@@ -642,13 +642,12 @@ function initializeCursorAndNav() {
 function initializeDirectorSlateComponent() {
   const slate = document.querySelector('[data-directors-slate]');
   const takeButton = document.querySelector('[data-slate-take]');
-  const scrollButton = document.querySelector('[data-slate-scroll]');
   const sceneNode = document.querySelector('[data-scene]');
   const takeNode = document.querySelector('[data-take]');
   const rollNode = document.querySelector('[data-roll]');
   const statementNode = document.querySelector('[data-slate-statement]');
 
-  if (!slate || !takeButton || !scrollButton || !sceneNode || !takeNode || !rollNode || !statementNode) return;
+  if (!slate || !takeButton || !sceneNode || !takeNode || !rollNode || !statementNode) return;
 
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   let scene = 1;
@@ -665,9 +664,18 @@ function initializeDirectorSlateComponent() {
   const formatNumber = (value) => String(value).padStart(2, '0');
 
   const scrollToFilms = () => {
-    navigateToRoute('/films');
-    applyRouteLayout(getAppRoute());
-    window.scrollTo({ top: 0, behavior: prefersReducedMotion ? 'auto' : 'smooth' });
+    const route = getAppRoute();
+
+    if (route.page !== 'home') {
+      navigateToRoute('/', { hash: 'films' });
+      applyRouteLayout(getAppRoute());
+      window.requestAnimationFrame(() => {
+        scrollToSectionByHash('#films');
+      });
+      return;
+    }
+
+    scrollToSectionByHash('#films');
   };
 
   const handleTakeInteraction = () => {
@@ -693,7 +701,6 @@ function initializeDirectorSlateComponent() {
   };
 
   takeButton.addEventListener('click', handleTakeInteraction);
-  scrollButton.addEventListener('click', scrollToFilms);
 }
 
 document.addEventListener('DOMContentLoaded', () => {
