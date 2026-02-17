@@ -121,7 +121,6 @@ function homeView() {
   return `<section class="slate-wrap" id="slate">
       <article class="slate" data-slate>
         <span class="slate-glow" aria-hidden="true"></span>
-        <p>director's slate</p>
         <h1>andrew yan</h1>
         <p>minimal, atmospheric films about memory, tension, and what remains unsaid.</p>
         <button class="quiet-btn" data-slate-action>enter</button>
