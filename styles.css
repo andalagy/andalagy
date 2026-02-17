@@ -12,6 +12,9 @@
   --fog-blur: 46px;
   --leak-opacity: 0.28;
   --ghost-offset: 4px;
+  --gradient-jitter-a: 0%;
+  --gradient-jitter-b: 0%;
+  --leak-spin: 0deg;
 }
 
 * {
@@ -50,20 +53,21 @@ body {
 
 .ambient-gradient {
   z-index: -4;
-  opacity: 0.42;
-  background: radial-gradient(circle at 20% 18%, rgba(82, 91, 118, 0.22), transparent 44%),
-    radial-gradient(circle at 73% 82%, rgba(95, 75, 108, 0.2), transparent 48%);
-  animation: tideShift 32s ease-in-out infinite alternate;
+  opacity: 0.46;
+  background: radial-gradient(circle at calc(20% + var(--gradient-jitter-a)) calc(18% - var(--gradient-jitter-b)), rgba(82, 91, 118, 0.26), transparent 42%),
+    radial-gradient(circle at calc(73% - var(--gradient-jitter-b)) calc(82% + var(--gradient-jitter-a)), rgba(95, 75, 108, 0.22), transparent 50%),
+    radial-gradient(circle at 50% 50%, rgba(118, 89, 150, 0.08), transparent 58%);
+  animation: tideShift 23s ease-in-out infinite alternate;
 }
 
 .ambient-leak {
   z-index: -3;
   opacity: var(--leak-opacity);
-  background: radial-gradient(circle at var(--leak-x) var(--leak-y), rgba(255, 196, 143, 0.28), transparent 28%),
-    radial-gradient(circle at calc(var(--leak-x) - 20vw) calc(var(--leak-y) + 8vh), rgba(172, 124, 222, 0.2), transparent 35%),
-    linear-gradient(120deg, rgba(160, 139, 206, 0.08), rgba(255, 184, 145, 0.11), transparent 65%);
-  filter: blur(calc(26px + (var(--motion-intensity) * 4px)));
-  transform: translate3d(calc(var(--float-x) * 0.5), calc(var(--float-y) * 0.5), 0);
+  background: radial-gradient(circle at var(--leak-x) var(--leak-y), rgba(255, 196, 143, 0.3), transparent 26%),
+    radial-gradient(circle at calc(var(--leak-x) - 20vw + var(--gradient-jitter-b)) calc(var(--leak-y) + 8vh), rgba(172, 124, 222, 0.24), transparent 36%),
+    linear-gradient(120deg, rgba(160, 139, 206, 0.1), rgba(255, 184, 145, 0.13), transparent 67%);
+  filter: blur(calc(26px + (var(--motion-intensity) * 6px)));
+  transform: translate3d(calc(var(--float-x) * 0.5), calc(var(--float-y) * 0.5), 0) rotate(var(--leak-spin));
   transition: opacity 0.4s ease;
 }
 
@@ -127,12 +131,14 @@ body.home-page main {
 .route-fade { opacity: 0; transform: translateY(3px); transition: opacity 0.6s ease, transform 0.6s ease; }
 .route-fade.visible { opacity: 1; transform: translateY(0); }
 
-.slate-wrap { min-height: 72svh; display: grid; place-items: center; }
+.slate-wrap { min-height: 72svh; display: flex; align-items: center; justify-content: center; padding-left: clamp(0.4rem, 3vw, 2rem); }
 
 .slate {
   position: relative;
   overflow: hidden;
   width: min(760px, 100%);
+  transform: rotate(-1.2deg);
+  margin-left: clamp(-0.4rem, -2vw, -1rem);
   border: 1px solid var(--line);
   border-radius: 16px;
   padding: clamp(1.2rem, 3.3vw, 2.3rem);
@@ -181,6 +187,22 @@ body.home-page main {
 .slate p:first-child { letter-spacing: 0.09em; transform: translate(1px, -1px); }
 .slate h1,
 .page-section h1 {
+  position: relative;
+}
+.slate h1::after,
+.film-card h3::before {
+  content: attr(data-glitch);
+  position: absolute;
+  left: 1px;
+  top: 1px;
+  opacity: 0.22;
+  color: rgba(171, 196, 255, 0.8);
+  filter: blur(1px);
+  pointer-events: none;
+}
+.slate h1 { transform: rotate(var(--title-tilt, -1deg)); }
+.slate h1,
+.page-section h1 {
   font-family: 'Cormorant Garamond', serif;
   font-weight: 500;
   font-size: clamp(2.4rem, 8vw, 5.5rem);
@@ -194,8 +216,9 @@ body.home-page main {
   margin: 1.15rem 0 0;
   padding: 0;
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.58rem;
+  grid-template-columns: repeat(3, minmax(0, min-content));
+  justify-content: start;
+  gap: 0.45rem 0.7rem;
   position: relative;
   z-index: 1;
 }
@@ -235,6 +258,36 @@ body.home-page main {
 
 .slate-meta-value.is-updating {
   animation: slateMetaTick 0.38s ease;
+}
+
+.slate-extra-meta {
+  margin-top: 0.4rem;
+  max-width: 540px;
+  opacity: 0.48;
+  transition: opacity 0.2s ease;
+}
+
+.slate-extra-meta[open],
+.slate-extra-meta:hover { opacity: 0.9; }
+
+.slate-extra-meta summary {
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 0.78rem;
+  text-transform: lowercase;
+  margin-bottom: 0.4rem;
+}
+
+.slate-extra-meta dl {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.slate-chip-ghost {
+  opacity: 0.74;
+  transform: rotate(-0.8deg);
 }
 
 .quiet-btn { margin-top: 1rem; border: 1px solid var(--line); background: rgba(255, 255, 255, 0.01); padding: 0.65rem 1rem; }
@@ -284,7 +337,7 @@ body.home-page main {
   pointer-events: none;
 }
 
-.film-grid { display: grid; gap: 1.2rem; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+.film-grid { display: flex; flex-wrap: wrap; gap: 1.8rem 1.2rem; align-items: flex-start; }
 
 .writing-grid {
   display: grid;
@@ -292,7 +345,7 @@ body.home-page main {
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
-.film-card { transform: translate(var(--card-shift-x, 0px), var(--card-shift-y, 0px)); }
+.film-card { width: min(330px, 100%); transform: translate(var(--card-shift-x, 0px), var(--card-shift-y, 0px)) rotate(var(--card-rotate, -1deg)); margin-top: calc(var(--card-stack, 0) * -0.35rem); }
 .film-card h3 { position: relative; font-weight: 400; margin-top: 0.7rem; letter-spacing: 0.018em; }
 .film-card h3::after {
   content: attr(data-title);
@@ -316,6 +369,7 @@ body.home-page main {
   border-radius: 12px;
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.11);
+  transform: rotate(var(--film-tilt, 0deg)) translateY(var(--film-overlap, 0px));
 }
 
 .writing-link {
@@ -411,7 +465,8 @@ body.home-page main {
   z-index: 0;
 }
 
-.film-link img {
+.film-link img,
+.thumb-placeholder {
   position: relative;
   z-index: 1;
   width: 100%;
@@ -420,6 +475,10 @@ body.home-page main {
   opacity: 0.86;
   filter: brightness(0.83) blur(0.8px);
   transition: opacity 0.3s ease, filter 0.3s ease;
+}
+
+.thumb-placeholder {
+  background: linear-gradient(160deg, rgba(45, 47, 56, 0.88), rgba(20, 21, 28, 0.96));
 }
 
 .film-overlay {
@@ -449,7 +508,9 @@ body.home-page main {
 .film-link:focus-visible::before { filter: blur(8px); }
 
 .film-link:hover img,
-.film-link:focus-visible img { opacity: 0.92; filter: brightness(0.94) blur(0.2px); }
+.film-link:hover .thumb-placeholder,
+.film-link:focus-visible img,
+.film-link:focus-visible .thumb-placeholder { opacity: 0.92; filter: brightness(0.94) blur(0.2px); }
 
 .film-link:hover .film-overlay span,
 .film-link:hover .film-overlay small,
