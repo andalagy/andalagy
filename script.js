@@ -209,12 +209,15 @@ function writingDetailPath(slug) {
   return `/writings/${encodeURIComponent(slug)}`;
 }
 
-function writingCard(item) {
+const WRITINGS_HERO_IMAGE = '/images/writings-canvas.svg';
+
+function writingCard(item, index = 0) {
   const writingPath = writingDetailPath(item.slug);
-  const coverImage = String(item.coverImage || item.image || item.cover || '').trim();
-  const mediaMarkup = coverImage
-    ? `<img class="writing-cover-image" src="${coverImage}" alt="${lower(item.title)} cover" loading="lazy" />`
-    : `<div class="writing-text-cover" aria-hidden="true"><span class="writing-haze"></span></div>`;
+  const sliceIndexDesktop = ((index % 4) + 4) % 4;
+  const sliceIndexTablet = ((index % 2) + 2) % 2;
+  const mediaMarkup = `<div class="writing-composite-cover" aria-hidden="true" style="--slice-index-4:${sliceIndexDesktop};--slice-index-2:${sliceIndexTablet};--writings-hero-image:url('${WRITINGS_HERO_IMAGE}');">
+      <span class="writing-haze"></span>
+    </div>`;
 
   return workCard({
     href: writingPath,
