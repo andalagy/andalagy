@@ -35,11 +35,18 @@ const whisperLine = document.querySelector('[data-whisper]');
 const isTouchDevice = window.matchMedia('(pointer: coarse)').matches;
 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 let ambientRaf = 0;
+let fogRaf = 0;
 const ambientMotion = {
   tx: window.innerWidth * 0.5,
   ty: window.innerHeight * 0.4,
   x: window.innerWidth * 0.5,
   y: window.innerHeight * 0.4
+};
+const fogPointer = {
+  tx: window.innerWidth * 0.5,
+  ty: window.innerHeight * 0.5,
+  x: window.innerWidth * 0.5,
+  y: window.innerHeight * 0.5
 };
 
 function normalize(path) {
@@ -363,10 +370,51 @@ function render() {
 
   requestAnimationFrame(() => app.classList.add('visible'));
 
-  if (window.location.hash === '#about') {
-    const about = document.querySelector('#about');
-    about?.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
+  if (window.location.hash === '#about') scrollToAnchorId('about');
+  if (window.location.hash === '#films') scrollToAnchorId('films');
+}
+
+function scrollToAnchorId(id, attempt = 0) {
+  const target = document.getElementById(id);
+  if (!target) {
+    if (attempt < 1) {
+      window.setTimeout(() => scrollToAnchorId(id, attempt + 1), 100);
+    }
+    return;
   }
+
+  target.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
+}
+
+function clapSlateAndAdvanceMeta() {
+  advanceSlateTake();
+  syncSlateMetaUI();
+  if (!reduceMotion) {
+    animateSlateValue('take');
+    if (SLATE_META.take === SLATE_META.takeRange[0]) animateSlateValue('roll');
+  }
+
+  const slate = document.querySelector('[data-slate]');
+  slate?.classList.remove('clap');
+  void slate?.offsetWidth;
+  slate?.classList.add('clap');
+
+  document.body.classList.add('slate-flash');
+  window.setTimeout(() => document.body.classList.remove('slate-flash'), reduceMotion ? 0 : 420);
+}
+
+function handleSlateEnter() {
+  clapSlateAndAdvanceMeta();
+
+  const proceed = () => scrollToAnchorId('films');
+  if (routeFromLocation().page === 'home') {
+    window.setTimeout(proceed, reduceMotion ? 0 : 420);
+    return;
+  }
+
+  history.pushState({}, '', toUrl('/', '#films'));
+  render();
+  window.setTimeout(proceed, reduceMotion ? 0 : 420);
 }
 
 function updateActiveNav(page) {
@@ -387,24 +435,7 @@ function bindDynamicInteractions() {
   initYouTubeThumbnailFallbacks();
 
   const slateButton = document.querySelector('[data-slate-action]');
-  slateButton?.addEventListener('click', () => {
-    advanceSlateTake();
-    syncSlateMetaUI();
-    if (!reduceMotion) {
-      animateSlateValue('take');
-      if (SLATE_META.take === SLATE_META.takeRange[0]) animateSlateValue('roll');
-    }
-    const slate = document.querySelector('[data-slate]');
-    slate?.classList.remove('clap');
-    void slate?.offsetWidth;
-    slate?.classList.add('clap');
-    document.body.classList.add('slate-flash');
-    window.setTimeout(() => document.body.classList.remove('slate-flash'), reduceMotion ? 0 : 420);
-    window.setTimeout(() => {
-      const filmsSection = document.querySelector('#films');
-      filmsSection?.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
-    }, reduceMotion ? 0 : 420);
-  });
+  slateButton?.addEventListener('click', handleSlateEnter);
 
   const quote = document.querySelector('[data-pull-quote]');
   if (quote) quote.remove();
@@ -590,6 +621,33 @@ function setupAmbientDrift() {
   if (!ambientRaf) ambientRaf = window.requestAnimationFrame(loop);
 }
 
+function setupFogRevealTracking() {
+  const root = document.documentElement;
+  root.style.setProperty('--mx', `${fogPointer.x}px`);
+  root.style.setProperty('--my', `${fogPointer.y}px`);
+
+  if (reduceMotion || isTouchDevice) return;
+
+  window.addEventListener(
+    'mousemove',
+    (event) => {
+      fogPointer.tx = event.clientX;
+      fogPointer.ty = event.clientY;
+    },
+    { passive: true }
+  );
+
+  const loop = () => {
+    fogPointer.x += (fogPointer.tx - fogPointer.x) * 0.12;
+    fogPointer.y += (fogPointer.ty - fogPointer.y) * 0.12;
+    root.style.setProperty('--mx', `${fogPointer.x.toFixed(2)}px`);
+    root.style.setProperty('--my', `${fogPointer.y.toFixed(2)}px`);
+    fogRaf = window.requestAnimationFrame(loop);
+  };
+
+  if (!fogRaf) fogRaf = window.requestAnimationFrame(loop);
+}
+
 
 function setupClickEcho() {
   document.querySelectorAll('.echo-ring').forEach((ring) => ring.remove());
@@ -650,5 +708,6 @@ setupNavigation();
 setupCursor();
 setupAmbientSeed();
 setupAmbientDrift();
+setupFogRevealTracking();
 window.addEventListener('scroll', () => window.requestAnimationFrame(applyScrollDissolve), { passive: true });
 render();
