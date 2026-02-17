@@ -102,7 +102,7 @@ function filmDetailView(id) {
   const film = FILMS.find((item) => item.id === id);
   if (!film) return `<section class="page-section"><h1>film not found</h1></section>`;
   return `<section class="page-section detail">
-    <a class="back-link" href="${toUrl('/films')}" data-link="/films">back to films</a>
+    <a class="back-link" href="${toUrl('/films')}" data-link="/films">back</a>
     <div class="player-wrap">
       <iframe src="https://www.youtube-nocookie.com/embed/${encodeURIComponent(
         film.id
@@ -135,7 +135,7 @@ function writingDetailView(slug) {
   const item = WRITINGS.find((entry) => entry.slug === slug);
   if (!item) return `<section class="page-section"><h1>writing not found</h1></section>`;
   return `<section class="page-section writing-detail">
-    <a class="back-link" href="${toUrl('/writings')}" data-link="/writings">back to writings</a>
+    <a class="back-link" href="${toUrl('/writings')}" data-link="/writings">back</a>
     <h1>${lower(item.title)}</h1>
     <article>${item.content
       .split('\n\n')
