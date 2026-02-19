@@ -1,3 +1,4 @@
+//render collective film detail pages
 (function () {
   function filmsView() {
     const films = window.APP_DATA?.films || [];
