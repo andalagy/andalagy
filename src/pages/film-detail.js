@@ -1,3 +1,4 @@
+//render individual film detail pages
 (function () {
   function filmDetailView(id) {
     const films = window.APP_DATA?.films || [];
