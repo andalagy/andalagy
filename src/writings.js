@@ -1,3 +1,4 @@
+//store writings
 (function attachWritingsContent(globalScope) {
   const writings = [
     {
