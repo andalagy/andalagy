@@ -1,3 +1,4 @@
+//store films
 (function attachFilmsContent(globalScope) {
   const films = [
     {
