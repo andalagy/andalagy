@@ -38,17 +38,18 @@
       <div class="dream-bloom"></div>
       <div class="dream-noise"></div>
     </div>
+    <div class="grain-overlay" aria-hidden="true"></div>
     <div class="whisper-line" data-whisper aria-hidden="true"></div>
     <div class="film-gate" data-film-gate aria-hidden="true"></div>
     <div class="cursor" aria-hidden="true"></div>
 
     <header class="site-header">
-      <a class="brand" href="/andalagy/" data-link="/">andrew yan</a>
+      <a class="brand" href="/andalagy/" data-link="/" data-anim-key="global:brand" data-reveal="link">andrew yan</a>
       <nav class="site-nav" aria-label="main navigation">
-        <a href="/andalagy/" data-link="/">home</a>
-        <a href="/andalagy/films" data-link="/films">films</a>
-        <a href="/andalagy/writings" data-link="/writings">writings</a>
-        <a href="/andalagy/#about" data-about-link>about</a>
+        <a href="/andalagy/" data-link="/" data-anim-key="global:nav:home" data-reveal="link">home</a>
+        <a href="/andalagy/films" data-link="/films" data-anim-key="global:nav:films" data-reveal="link">films</a>
+        <a href="/andalagy/writings" data-link="/writings" data-anim-key="global:nav:writings" data-reveal="link">writings</a>
+        <a href="/andalagy/#about" data-about-link data-anim-key="global:nav:about" data-reveal="link">about</a>
       </nav>
     </header>
 
@@ -61,6 +62,7 @@
     <script defer src="/andalagy/src/pages/film-detail.js"></script>
     <script defer src="/andalagy/src/pages/writings.js"></script>
     <script defer src="/andalagy/src/pages/writing-detail.js"></script>
+    <script defer src="/andalagy/utils/animationRegistry.js"></script>
     <script defer src="/andalagy/script.js"></script>
   </body>
 </html>

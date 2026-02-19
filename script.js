@@ -42,6 +42,10 @@ const DREAM_TUNING = {
   TRANSITION_MS: 560
 };
 
+
+const GRAIN_INTENSITY = 0.11; // set opacity here to tune grain visibility quickly
+const REVEAL_EASE = 'cubic-bezier(0.2, 0.8, 0.2, 1)';
+
 const FLOATING_TEXT_SNIPPETS = [
   'a room before the story',
   'light moves without meaning',
@@ -73,6 +77,7 @@ let headingBreathObserver = null;
 let memorySubtitleObserver = null;
 let slateMiniObserver = null;
 let memorySubtitleFadeTimeout = 0;
+let revealOnceObserver = null;
 let activeMemoryLine = '';
 let filmGateTimer = 0;
 let floatingTextNearTimer = 0;
@@ -227,7 +232,7 @@ function filmDetailPath(id) {
   return `/films/${encodeURIComponent(safeId)}`;
 }
 
-function filmCard(film) {
+function filmCard(film, index = 0) {
   const cleanId = cleanVideoId(film.youtubeId);
   if (!cleanId) return '';
   const filmPath = filmDetailPath(cleanId);
@@ -236,7 +241,9 @@ function filmCard(film) {
     title: film.title,
     description: film.statement,
     mediaMarkup: renderYouTubeThumbnail({ id: cleanId, alt: `${lower(film.title)} thumbnail`, className: 'film-image' }),
-    cardClass: 'film-card'
+    cardClass: 'film-card',
+    animKey: `films:card:${cleanId}`,
+    staggerIndex: index
   });
 }
 
@@ -266,14 +273,16 @@ function writingCard(item, index = 0) {
     title: item.title,
     description: item.excerpt,
     mediaMarkup,
-    cardClass: 'writing-card'
+    cardClass: 'writing-card',
+    animKey: `writings:card:${item.slug}`,
+    staggerIndex: index
   });
 }
 
-function workCard({ href, title, description, mediaMarkup, cardClass = '' }) {
+function workCard({ href, title, description, mediaMarkup, cardClass = '', animKey = '', staggerIndex = 0 }) {
   const subtitle = lower(description || '').trim();
-  return `<article class="work-card ${cardClass}">
-    <a href="${toUrl(href)}" data-link="${href}" class="work-card-link" data-echo-target aria-label="${lower(title)}">
+  return `<article class="work-card ${cardClass}" data-anim-key="${animKey}" data-reveal="card" data-reveal-stagger="${staggerIndex}">
+    <a href="${toUrl(href)}" data-link="${href}" class="work-card-link" data-echo-target data-anim-key="${animKey}:link" data-reveal="link" data-reveal-stagger="${staggerIndex}" aria-label="${lower(title)}">
       <div class="work-tile">
         ${mediaMarkup}
       </div>
@@ -284,10 +293,10 @@ function workCard({ href, title, description, mediaMarkup, cardClass = '' }) {
 }
 
 function aboutBlock() {
-  return `<section id="about" class="about">
-    <h2 data-breath-heading>about</h2>
-    <p class="thesis">i am a filmmaker and writer drawn to memory, silence, and unresolved feeling. the work leans toward atmosphere over explanation, and keeps meaning slightly out of reach.</p>
-    <p class="contact">
+  return `<section id="about" class="about" data-anim-key="home:about:block" data-reveal="section">
+    <h2 data-breath-heading data-anim-key="home:about:heading" data-reveal="heading">about</h2>
+    <p class="thesis" data-anim-key="home:about:thesis" data-reveal="text">i am a filmmaker and writer drawn to memory, silence, and unresolved feeling. the work leans toward atmosphere over explanation, and keeps meaning slightly out of reach.</p>
+    <p class="contact" data-anim-key="home:about:contact" data-reveal="text">
       <a href="mailto:g13901913371@gmail.com?subject=hello%20andrew">g13901913371@gmail.com</a>
       ·
       <a href="https://www.instagram.com/andalagy/" target="_blank" rel="noopener noreferrer" aria-label="instagram">instagram</a>
@@ -300,34 +309,34 @@ function aboutBlock() {
 function homeView() {
   const shown = FILMS.slice(0, 4);
   const shownWritings = WRITINGS.slice(0, 4);
-  return `<section class="slate-wrap" id="slate">
-      <article class="slate" data-slate>
+  return `<section class="slate-wrap" id="slate" data-anim-key="home:slate:wrap" data-reveal="section">
+      <article class="slate" data-slate data-anim-key="home:slate:hero" data-reveal="hero">
         <span class="slate-glow" aria-hidden="true"></span>
-        <h1 data-glitch="andrew yan">andrew yan</h1>
-        <p class="memory-subtitle" data-memory-subtitle aria-live="polite">a room before the story</p>
-        <p>the world forgetting, the world forgot.</p>
+        <h1 data-glitch="andrew yan" data-anim-key="home:slate:heading" data-reveal="heading">andrew yan</h1>
+        <p class="memory-subtitle" data-memory-subtitle aria-live="polite" data-anim-key="home:slate:subtitle" data-reveal="text">a room before the story</p>
+        <p data-anim-key="home:slate:line" data-reveal="text">the world forgetting, the world forgot.</p>
         ${slateMetaMarkup()}
       </article>
     </section>
-    <article class="slate-mini" data-slate-mini hidden aria-hidden="true">
+    <article class="slate-mini" data-slate-mini hidden aria-hidden="true" data-anim-key="home:slate:mini" data-reveal="hero">
       <p class="slate-mini-title">andrew yan</p>
       ${slateMetaMarkup()}
     </article>
-    <section id="films" class="home-films">
+    <section id="films" class="home-films" data-anim-key="home:films:section" data-reveal="section">
       <div class="heading-row">
-        <h2 data-breath-heading>films</h2>
+        <h2 data-breath-heading data-anim-key="home:films:heading" data-reveal="heading">films</h2>
       </div>
-      <div class="film-grid">${shown.map(filmCard).join('')}</div>
-      <a class="quiet-btn section-cta" href="${toUrl('/films')}" data-link="/films">${LIST_CTA_LABEL} →</a>
+      <div class="film-grid" data-anim-key="home:films:grid" data-reveal="section">${shown.map(filmCard).join('')}</div>
+      <a class="quiet-btn section-cta" href="${toUrl('/films')}" data-link="/films" data-anim-key="home:films:cta" data-reveal="link">${LIST_CTA_LABEL} →</a>
     </section>
-    <section class="home-writings">
+    <section class="home-writings" data-anim-key="home:writings:section" data-reveal="section">
       <div class="heading-row">
-        <h2 data-breath-heading>writings</h2>
+        <h2 data-breath-heading data-anim-key="home:writings:heading" data-reveal="heading">writings</h2>
       </div>
-      <div class="writing-grid">
+      <div class="writing-grid" data-anim-key="home:writings:grid" data-reveal="section">
         ${shownWritings.map(writingCard).join('')}
       </div>
-      <a class="quiet-btn section-cta" href="${toUrl('/writings')}" data-link="/writings">${LIST_CTA_LABEL} →</a>
+      <a class="quiet-btn section-cta" href="${toUrl('/writings')}" data-link="/writings" data-anim-key="home:writings:cta" data-reveal="link">${LIST_CTA_LABEL} →</a>
     </section>
     ${aboutBlock()}`;
 }
@@ -480,8 +489,67 @@ function updateActiveNav(page) {
   });
 }
 
+function mountGrainOverlay() {
+  const grain = document.querySelector('.grain-overlay');
+  if (!grain) return;
+  grain.style.setProperty('--grain-opacity', String(GRAIN_INTENSITY));
+  grain.style.setProperty('--grain-motion', reduceMotion ? '0s' : '8s');
+}
+
+function revealElementImmediately(node) {
+  node.classList.add('reveal-ready', 'is-revealed');
+}
+
+function useRevealOnce() {
+  const registry = window.AnimationRegistry;
+  const nodes = document.querySelectorAll('[data-anim-key]');
+  if (!nodes.length) return;
+
+  if (revealOnceObserver) {
+    revealOnceObserver.disconnect();
+    revealOnceObserver = null;
+  }
+
+  const revealOrFinalize = (node) => {
+    const key = node.dataset.animKey;
+    const seen = registry?.hasSeen?.(key);
+    const staggerIndex = Number(node.dataset.revealStagger || 0);
+    const staggerMs = Math.min(280, Math.max(0, staggerIndex * 40));
+    node.classList.add('reveal-ready');
+    node.style.setProperty('--reveal-delay', `${staggerMs}ms`);
+    node.style.setProperty('--reveal-ease', REVEAL_EASE);
+    if (seen || reduceMotion) {
+      revealElementImmediately(node);
+      registry?.markSeen?.(key);
+      return true;
+    }
+    return false;
+  };
+
+  revealOnceObserver = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        const node = entry.target;
+        if (!entry.isIntersecting) return;
+        revealElementImmediately(node);
+        registry?.markSeen?.(node.dataset.animKey);
+        revealOnceObserver?.unobserve(node);
+      });
+    },
+    { threshold: 0.2, rootMargin: '0px 0px -8% 0px' }
+  );
+
+  nodes.forEach((node) => {
+    const variant = node.dataset.reveal || 'section';
+    node.classList.add('reveal', `reveal--${variant}`);
+    const finalized = revealOrFinalize(node);
+    if (!finalized) revealOnceObserver.observe(node);
+  });
+}
+
 function bindDynamicInteractions() {
   applyScrollDissolve();
+  useRevealOnce();
   initYouTubeThumbnailFallbacks();
 
   const slate = document.querySelector('[data-slate]');
@@ -685,26 +753,25 @@ function setupHeadingBreath() {
   headingBreathObserver?.disconnect();
   const headings = document.querySelectorAll('[data-breath-heading], .about h2');
   if (!headings.length) return;
+  const registry = window.AnimationRegistry;
   headingBreathObserver = new IntersectionObserver(
     (entries) => {
       entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
         const heading = entry.target;
-        if (entry.intersectionRatio < 0.42) {
-          heading.dataset.breathReady = '1';
-          heading.classList.remove('focus-breath');
+        const key = heading.dataset.animKey || `heading:${lower(heading.textContent)}`;
+        if (registry?.hasSeen?.(`${key}:breath`)) {
+          headingBreathObserver?.unobserve(heading);
           return;
         }
-        if (!entry.isIntersecting || heading.dataset.breathReady !== '1') return;
-        heading.classList.remove('focus-breath');
-        void heading.offsetWidth;
         heading.classList.add('focus-breath');
-        heading.dataset.breathReady = '0';
+        registry?.markSeen?.(`${key}:breath`);
+        headingBreathObserver?.unobserve(heading);
       });
     },
-    { threshold: [0.42, 0.66] }
+    { threshold: [0.42] }
   );
   headings.forEach((heading) => {
-    heading.dataset.breathReady = '1';
     headingBreathObserver.observe(heading);
   });
 }
@@ -1032,6 +1099,7 @@ function applyScrollDissolve() {
 setupNavigation();
 setupCursor();
 setupAmbientSeed();
+mountGrainOverlay();
 setupAmbientDrift();
 setupFogRevealTracking();
 setupFloatingTextLayer();
