@@ -308,11 +308,11 @@ function aboutBlock() {
     <p class="contact" data-anim-key="home:about:contact" data-reveal="text">
       <a href="mailto:g13901913371@gmail.com?subject=hello%20andrew">g13901913371@gmail.com</a>
       ·
+      <a href="https://www.youtube.com/@andalagy/" target="_blank" rel="noopener noreferrer" aria-label="youtube">youtube</a>
+      ·
       <a href="https://www.instagram.com/andalagy/" target="_blank" rel="noopener noreferrer" aria-label="instagram">instagram</a>
       ·
       <a href="https://letterboxd.com/andalagy/" target="_blank" rel="noopener noreferrer" aria-label="letterboxd">letterboxd</a>
-      ·
-      <a href="https://www.youtube.com/@andalagy/" target="_blank" rel="noopener noreferrer" aria-label="youtube">youtube</a>
     </p>
   </section>`;
 }
