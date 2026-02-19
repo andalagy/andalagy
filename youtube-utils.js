@@ -1,3 +1,4 @@
+//parse from youtube (mainly thumbnails)
 (function attachYouTubeUtils(globalScope) {
   function assertYouTubeId(id) {
     return typeof id === 'string' && /^[A-Za-z0-9_-]{11}$/.test(id);
