@@ -319,6 +319,39 @@ The cabbage seems heavier than it should have been.
 More.
 But it seems like you carried it far more.`
     }
+    {
+      slug: 'the-man-in-the-hole',
+      title: 'the man in the hole',
+      excerpt: 'i guess he is just in the hole',
+      content: `No one expected to find a man halfway through the ceiling that morning.
+
+His boots dangled like ornaments, bits of pink insulation floating down like cherry blossoms in spring.
+
+From below, it looked like he had simply stepped into another world and paused halfway to admire the view.
+
+“Hey, uh… you good up there?” someone called.
+
+Silence. Then a laugh.
+
+Nobody ever saw his face.
+
+They didn’t need to.
+
+Every day he’d be there: legs swinging gently, tapping out soft rhythms against the drywall, as though keeping time to a melody only he could hear.
+
+“It’s brighter here. You should come up sometime.”
+
+The foreman stopped asking questions.
+
+The crew stopped patching the hole.
+
+They learned to work around the legs, as if having a doorway to somewhere else was the most ordinary thing in the world.
+
+And then one day, the legs were gone.
+
+No insulation, no hole, not even a scuff on the plaster.
+
+Just the faint hum of something waiting, somewhere above the ceiling, for anyone brave enough to take the next step.`
   ];
 
   globalScope.WRITINGS_DATA = writings;
