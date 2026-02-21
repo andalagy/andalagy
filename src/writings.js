@@ -239,7 +239,7 @@ And who gets to keep it.`
     slug: "keep-calm-and-carry-on",
     title: "keep calm and carry on",
     excerpt: "just keep calm.",
-    year: 2024,
+    year: 2025,
     content: `So where are you?
 
 You’re in someplace dark.
@@ -283,33 +283,19 @@ But it seems like you carried it far more.`
     excerpt: "i guess he is just in the hole",
     year: 2025,
     content: `No one expected to find a man halfway through the ceiling that morning.
-
 His boots dangled like ornaments, bits of pink insulation floating down like cherry blossoms in spring.
-
 From below, it looked like he had simply stepped into another world and paused halfway to admire the view.
-
 “Hey, uh… you good up there?” someone called.
-
 Silence. Then a laugh.
-
 Nobody ever saw his face.
-
 They didn’t need to.
-
 Every day he’d be there: legs swinging gently, tapping out soft rhythms against the drywall, as though keeping time to a melody only he could hear.
-
 “It’s brighter here. You should come up sometime.”
-
 The foreman stopped asking questions.
-
 The crew stopped patching the hole.
-
 They learned to work around the legs, as if having a doorway to somewhere else was the most ordinary thing in the world.
-
 And then one day, the legs were gone.
-
 No insulation, no hole, not even a scuff on the plaster.
-
 Just the faint hum of something waiting, somewhere above the ceiling, for anyone brave enough to take the next step.`
   },
   {
@@ -318,23 +304,14 @@ Just the faint hum of something waiting, somewhere above the ceiling, for anyone
     excerpt: "i also never should’ve taken that job.",
     year: 2024,
     content: `I also never should’ve taken that job.
-	
 But when you’re broke, fresh out of college, and barely scraping rent, even a night shift security gig at an abandoned hospital starts to sound like a blessing.
-
 “Just walk the halls twice a night,” the supervisor said, handing me a jangling set of keys. “Don't go near the west wing. It’s under renovation. You’ll set off the alarms.”
-
 He didn’t smile. Not even a little. And he didn’t make eye contact when he said it.
-
 The first night, everything was still. Too still.
-
 No lights on except the flickering ones in the lobby. The elevator didn’t work. My footsteps echoed so loud they sounded like someone else was walking with me.
-
- I kept hearing the hum of machines that shouldn’t be running.
- 
+I kept hearing the hum of machines that shouldn’t be running.
 In the silence, my mind started to wander.
-
 Why not the west wing?
-
 What’s behind that sealed door on the third floor? Room 413?
 
 The second night, I heard the whispering.
