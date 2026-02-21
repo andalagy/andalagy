@@ -1,12 +1,10 @@
-//store writings
-(function attachWritingsContent(globalScope) {
-  const writings = [
-    {
-      slug: 'lull',
-      title: 'lull',
-      excerpt: 'lull. a poem.',
-      content: `Alcyonacea
-	
+export const writings = [
+  {
+    slug: "lull",
+    title: "lull",
+    excerpt: "lull. a poem.",
+    content: `Alcyonacea
+
 Sway on a gray cradle
 
 Rocked by the ocean’s arms.
@@ -37,16 +35,14 @@ Eternal rhythm,
 
 Ocean cradles ancient dreams
 
-Time flows, and it sleeps.
+Time flows, and it sleeps.`
+  },
+  {
+    slug: "the-ink-the-bottle-and-the-book",
+    title: "the ink, the bottle, and the book",
+    excerpt: "three objects.",
+    content: `In the corner of the abandoned study sat three things.
 
-`
-    },
-    {
-      slug: 'the-ink-the-bottle-and-the-book',
-      title: 'the ink, the bottle, and the book',
-      excerpt: 'three objects.',
-      content: `In the corner of the abandoned study sat three things.
-	
 A black porcelain vase, chipped and cold.
 
 A glass ink bottle, its contents thick as dried blood.
@@ -65,16 +61,16 @@ At night, when the house sank into silence, the whispers began.
 
 The vase spoke first.
 
-	“Another failure,” it said, voice hollow. “The boy fears us.”
-	
+“Another failure,” it said, voice hollow. “The boy fears us.”
+
 The ink bottle trembled, its black surface trembling like a ripple in dark water.
 
-	“Fear feeds him. Fear feeds me.”
-	
+“Fear feeds him. Fear feeds me.”
+
 The book laughed—a dry, brittle sound like paper tearing.
 
-	“Fear is the first offering. Knowledge is the second. Both will be taken.”
-	
+“Fear is the first offering. Knowledge is the second. Both will be taken.”
+
 One night, the boy returned.
 
 His hands shook as they brushed the book’s rough cover.
@@ -102,12 +98,12 @@ The vase stood still.
 The ink bottle was empty.
 
 And the book pulsed faintly, like a living heart, waiting for the next night.`
-    },
-    {
-      slug: 'a-b-c',
-      title: 'a, b, c.',
-      excerpt: 'a simple conversation between three people.',
-      content: `A:
+  },
+  {
+    slug: "a-b-c",
+    title: "a, b, c.",
+    excerpt: "a simple conversation between three people.",
+    content: `A:
 It’s heavier when you don’t look at it.
 
 B:
@@ -132,7 +128,7 @@ B:
 I want it to stop changing the room.
 
 C:
-Too late. 
+Too late.
 
 A:
 You hear that ringing?
@@ -277,34 +273,34 @@ Because now we have to decide what we brought with us.
 
 C:
 And who gets to keep it.`
-    },
-    {
-      slug: 'keep-calm-and-carry-on',
-      title: 'keep calm and carry on',
-      excerpt: 'just keep calm.',
-      content: `So where are you?
+  },
+  {
+    slug: "keep-calm-and-carry-on",
+    title: "keep calm and carry on",
+    excerpt: "just keep calm.",
+    content: `So where are you?
 
 You’re in someplace dark.
-In some moving vehicle. Going 5 miles per hour. 
+In some moving vehicle. Going 5 miles per hour.
 
 Away from the city. Away from hope.
 
 What do you remember?
 
-calm. 
+calm.
 
-Streets. Yes streets. In broad daylight at the market. At Rue Muffetard. 
-Cabbage. Two pounds of cabbage, but– 
+Streets. Yes streets. In broad daylight at the market. At Rue Muffetard.
+Cabbage. Two pounds of cabbage, but–
 
-Calm. 
+Calm.
 
-The stall across the way. Someone asked for pears. 
+The stall across the way. Someone asked for pears.
 No face? Yes, only the sleeve. Gray. Pressed.
 
 Keep calm.
 
 There was no door. But a creak.
-There was cloth tearing. No cloth. 
+There was cloth tearing. No cloth.
 
 In the faintest ringing–
 
@@ -318,12 +314,12 @@ You look down.
 The cabbage seems heavier than it should have been.
 More.
 But it seems like you carried it far more.`
-    }
-    {
-      slug: 'the-man-in-the-hole',
-      title: 'the man in the hole',
-      excerpt: 'i guess he is just in the hole',
-      content: `No one expected to find a man halfway through the ceiling that morning.
+  },
+  {
+    slug: "the-man-in-the-hole",
+    title: "the man in the hole",
+    excerpt: "i guess he is just in the hole",
+    content: `No one expected to find a man halfway through the ceiling that morning.
 
 His boots dangled like ornaments, bits of pink insulation floating down like cherry blossoms in spring.
 
@@ -352,7 +348,11 @@ And then one day, the legs were gone.
 No insulation, no hole, not even a scuff on the plaster.
 
 Just the faint hum of something waiting, somewhere above the ceiling, for anyone brave enough to take the next step.`
-  ];
+  }
+];
 
-  globalScope.WRITINGS_DATA = writings;
-})(window);
+if (typeof window !== "undefined") {
+  window.WRITINGS_DATA = writings;
+}
+
+export default writings;
