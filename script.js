@@ -1,5 +1,5 @@
 //animation renders & renders film & writing pages
-const APP_BASE_PATH = '/andalagy';
+const APP_BASE_PATH = '';
 const FILMS = Array.isArray(window.FILMS_DATA) ? window.FILMS_DATA : [];
 const WRITINGS = Array.isArray(window.WRITINGS_DATA) ? window.WRITINGS_DATA : [];
 const LIST_CTA_LABEL = 'show more';
@@ -798,7 +798,7 @@ function runSessionLoadOverlay() {
     appendLine('andalagy runtime v0.2');
     appendLine('mounting dom root... ok');
     appendLine('simulation clock: synced');
-    appendLine('run /andalagy', 'prompt-inline');
+    appendLine('run /', 'prompt-inline');
     timeline.push(window.setTimeout(() => finishIntro(false), timings.totalMs));
     return;
   }
