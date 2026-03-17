@@ -1,7 +1,183 @@
 export const writings = [
   {
+    slug: "afterthought",
+    title: "Afterthought",
+    excerpt: "a man prepares all day to say one sentence. waiting has other plans.",
+    year: 2026,
+    content: `He had spent the whole day preparing for a sentence.
+Not writing it. He already knew the words.
+Preparing for its arrival, the way people prepare for a storm.
+
+By late afternoon, the apartment had begun to look like a promise.
+He placed two thin white cups on the table by the window. He set the record player ready, the needle lifted like a held breath.
+
+On the counter lay a folded note:
+Open the door.
+Do not laugh.
+Say it first.
+
+At 6:05 he checked the clock.
+At 6:07 he checked again.
+
+He moved the chairs closer together. Then farther apart. Then closer again.
+
+The knock came at 6:11.
+
+It was not the knock he had been waiting for.
+This knock was apologetic.
+It sounded like someone asking permission to exist.
+
+He opened the door halfway.
+
+Something slipped through. It had the outline of a person, with smudged edges, carrying a faint, faint draft,
+
+“Oh, good,” it said. “You are early in the waiting.”
+
+“Who are you?”
+
+“Vane. Just Vane will do.”
+
+It sat down immediately.
+
+“You can’t be here,” he said. “I’m expecting someone.”
+
+“Exactly,” said Vane.
+
+It picked up the folded note.
+
+“You always plan so bravely.”
+
+“You need to leave. Soon.”
+
+“I will. Eventually.”
+“I just like to keep people company while the clock gets louder.”
+
+It set the note down, a little off center.
+One of the thin white cups had somehow turned a few degrees toward the wall.
+
+6:19.
+
+He lit a candle. 
+Somewhere down the hall a television laughed too loudly.
+The flame shifted sharply to one side.
+
+For a moment, the room seemed to dim around the edges.
+
+“What if they already know?” Vane asked.
+
+“That isn’t helpful.”
+
+“I’m not supposed to be helpful,”
+“I’m through.”
+
+It wandered the room, trailing coolness. 
+Nudged a chair back. 
+Turned the record sleeve face down.
+
+“You’ve created such a clear moment,” it observed. “Clear moments are dangerous.”
+
+“I don’t want retreat.”
+
+“Everyone wants retreat.”
+
+6:33.
+
+His phone buzzed.
+
+Train’s running ahead. 
+Might get there early.
+
+His stomach tightened.
+
+“Yes,” said Vane softly.
+“Speed changes the structure of speech. You may lose the sentence entirely.”
+
+“I am certain.”
+
+“Then wait five more minutes.”
+
+He paced.
+
+The distance felt wrong.
+
+He paced. 
+
+His shoulder brushed a chair he had already passed.
+
+6:47.
+
+Footsteps in the hallway again.
+
+Vane rose behind him, suddenly taller.
+
+“After this, you will have to decide who you are.”
+“Out loud.”
+
+His throat tightened.
+
+The footsteps stopped.
+
+The sentence he had prepared all day suddenly felt like another language.
+
+A knock followed.
+A firm one.
+
+He stared at the handle. His hand hovered there.
+
+“You can still pretend you’re not home,”
+
+The knock came again.
+
+He exhaled.
+
+The door opened.
+
+She stood there, breathless from the stairs. 
+
+
+Neither of them spoke.
+
+Behind him, Vane thinned, resisting the light.
+For a moment, it remained at the edge of the room, as if considering whether to stay.
+
+“Hey,” she said.
+
+“Hey,” he answered.
+
+She stepped inside. He closed the door carefully.
+
+“You look like you’ve been waiting,”
+
+“I have.”
+
+He gestured toward the table, toward the cups, toward the candle.
+
+“Well,” she said, shrugging off her coat, “I’m here now.”
+
+The sentence rose inside him.
+
+“I don’t want to keep almost knowing what this is,” he said. “I don’t want to keep pretending we’re just passing through each other’s lives.”
+
+He almost said something safer.
+
+The words hung between them.
+
+For a second, she said nothing.
+
+Then she laughed softly. She reached for one of the thin white cups.
+
+“You always say things so dramatically,”
+“But I’m glad you chose one.”
+
+Relief did not come all at once.
+
+Outside, another train passed, unseen.
+
+Inside, the evening finally began.`
+  },
+  {
     slug: "a-b-c",
-    title: "a, b, c.",
+    title: "A and B and C",
     excerpt: "a simple conversation between three people.",
     year: 2025,
     content: `A:
@@ -177,7 +353,7 @@ And who gets to keep it.`
   },
   {
     slug: "keep-calm-and-carry-on",
-    title: "keep calm and carry on",
+    title: "Keep Calm and Carry On",
     excerpt: "just keep calm.",
     year: 2025,
     content: `So where are you?
@@ -219,7 +395,7 @@ But it seems like you carried it far more.`
   },
   {
     slug: "the-man-in-the-hole",
-    title: "the man in the hole",
+    title: "The Man in The Hole",
     excerpt: "i guess he is just in the hole",
     year: 2025,
     content: `No one expected to find a man halfway through the ceiling that morning.
@@ -240,7 +416,7 @@ Just the faint hum of something waiting, somewhere above the ceiling, for anyone
   },
   {
     slug: "lull",
-    title: "lull",
+    title: "Lull",
     excerpt: "lull. a poem.",
     year: 2024,
     content: `Alcyonacea
@@ -265,7 +441,7 @@ Time flows, and it sleeps.`
   },
   {
     slug: "room-413",
-    title: "room 413",
+    title: "Room 413",
     excerpt: "i also never should’ve taken that job.",
     year: 2024,
     content: `I also never should’ve taken that job.
