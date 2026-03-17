@@ -5,7 +5,30 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>redirecting…</title>
-    <link rel="icon" type="image/png" href="./src/assets/favicon.png">
+    <link id="site-favicon" rel="icon" type="image/png" href="src/assets/favicon.png" sizes="any" />
+    <script>
+      (function () {
+        var location = window.location;
+        var host = String(location.hostname || "").toLowerCase();
+        var isGithubProject = host.endsWith(".github.io");
+        var segments = location.pathname.split("/").filter(Boolean);
+        var first = segments[0] || "";
+        var basePath = isGithubProject && first && first !== "404.html" && first !== "index.html" ? "/" + first : "";
+        var iconHref = (basePath || "") + "/src/assets/favicon.png";
+        var favicon = document.getElementById("site-favicon");
+
+        if (favicon) favicon.setAttribute("href", iconHref);
+
+        var shortcut = document.querySelector('link[rel="shortcut icon"]');
+        if (!shortcut) {
+          shortcut = document.createElement("link");
+          shortcut.setAttribute("rel", "shortcut icon");
+          shortcut.setAttribute("type", "image/png");
+          document.head.appendChild(shortcut);
+        }
+        shortcut.setAttribute("href", iconHref);
+      })();
+    </script>
     <link rel="stylesheet" href="styles.css" />
     <script>
       (function () {
