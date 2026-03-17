@@ -4,6 +4,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <base id="app-base" href="/" />
     <title>andrew yan</title>
     <link id="site-favicon" rel="icon" type="image/png" href="src/assets/favicon.png" sizes="any" />
     <script>
@@ -47,8 +48,14 @@
         const segments = location.pathname.split('/').filter(Boolean);
         const first = segments[0] || '';
         const basePath = isGithubProject && first && first !== '404.html' && first !== 'index.html' ? `/${first}` : '';
+        const baseHref = `${basePath || ''}/`;
+        const baseTag = document.getElementById('app-base');
 
         window.__APP_BASE_PATH__ = basePath;
+
+        if (baseTag) {
+          baseTag.setAttribute('href', baseHref);
+        }
 
         if (location.search[1] !== '/') return;
 
