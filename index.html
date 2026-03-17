@@ -17,15 +17,32 @@
       document.documentElement.classList.add('js-ready');
     </script>
     <script>
-      (function (location) {
+      (function () {
+        const location = window.location;
+        const host = String(location.hostname || '').toLowerCase();
+        const isGithubProject = host.endsWith('.github.io');
+        const segments = location.pathname.split('/').filter(Boolean);
+        const first = segments[0] || '';
+        const basePath = isGithubProject && first && first !== '404.html' && first !== 'index.html' ? `/${first}` : '';
+
+        window.__APP_BASE_PATH__ = basePath;
+
         if (location.search[1] !== '/') return;
+
         const decoded = location.search
           .slice(1)
           .split('&')
           .map((segment) => segment.replace(/~and~/g, '&'))
           .join('?');
-        window.history.replaceState(null, '', location.pathname.slice(0, -1) + decoded + location.hash);
-      })(window.location);
+
+        const normalizedBase = basePath ? `${basePath}/` : '/';
+        const targetPath = `${normalizedBase.replace(/\/$/, '')}${decoded}`;
+        const current = `${location.pathname}${location.search}${location.hash}`;
+        const target = `${targetPath}${location.hash}`;
+
+        if (current === target) return;
+        window.history.replaceState(null, '', target);
+      })();
     </script>
     <link rel="stylesheet" href="styles.css" />
   </head>
@@ -53,24 +70,24 @@
     <div class="cursor" aria-hidden="true"></div>
 
     <header class="site-header">
-      <a class="brand" href="/" data-link="/" data-anim-key="global:brand" data-reveal="link">andrew yan</a>
+      <a class="brand" href="./" data-link="/" data-anim-key="global:brand" data-reveal="link">andrew yan</a>
       <nav class="site-nav" aria-label="main navigation">
-        <a href="/" data-link="/" data-anim-key="global:nav:home" data-reveal="link">home</a>
-        <a href="/films" data-link="/films" data-anim-key="global:nav:films" data-reveal="link">films</a>
-        <a href="/writings" data-link="/writings" data-anim-key="global:nav:writings" data-reveal="link">writings</a>
-        <a href="/#about" data-about-link data-anim-key="global:nav:about" data-reveal="link">about</a>
+        <a href="./" data-link="/" data-anim-key="global:nav:home" data-reveal="link">home</a>
+        <a href="./films" data-link="/films" data-anim-key="global:nav:films" data-reveal="link">films</a>
+        <a href="./writings" data-link="/writings" data-anim-key="global:nav:writings" data-reveal="link">writings</a>
+        <a href="./#about" data-about-link data-anim-key="global:nav:about" data-reveal="link">about</a>
       </nav>
     </header>
 
     <main id="app" class="route-fade"></main>
 
-    <script defer src="/youtube-utils.js"></script>
-    <script defer src="/src/films.js"></script>
-    <script type="module" defer src="/src/writings.js"></script>
-    <script defer src="/src/pages/films.js"></script>
-    <script defer src="/src/pages/film-detail.js"></script>
-    <script defer src="/src/pages/writings.js"></script>
-    <script defer src="/src/pages/writing-detail.js"></script>
-    <script defer src="/script.js"></script>
+    <script defer src="./youtube-utils.js"></script>
+    <script defer src="./src/films.js"></script>
+    <script type="module" defer src="./src/writings.js"></script>
+    <script defer src="./src/pages/films.js"></script>
+    <script defer src="./src/pages/film-detail.js"></script>
+    <script defer src="./src/pages/writings.js"></script>
+    <script defer src="./src/pages/writing-detail.js"></script>
+    <script defer src="./script.js"></script>
   </body>
 </html>
