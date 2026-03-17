@@ -4,6 +4,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <base id="app-base" href="/" />
     <title>redirecting…</title>
     <link id="site-favicon" rel="icon" type="image/png" href="src/assets/favicon.png" sizes="any" />
     <script>
@@ -14,8 +15,12 @@
         var segments = location.pathname.split("/").filter(Boolean);
         var first = segments[0] || "";
         var basePath = isGithubProject && first && first !== "404.html" && first !== "index.html" ? "/" + first : "";
+        var baseHref = (basePath || "") + "/";
+        var baseTag = document.getElementById("app-base");
         var iconHref = (basePath || "") + "/src/assets/favicon.png";
         var favicon = document.getElementById("site-favicon");
+
+        if (baseTag) baseTag.setAttribute("href", baseHref);
 
         if (favicon) favicon.setAttribute("href", iconHref);
 
