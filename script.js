@@ -1,5 +1,5 @@
 //animation renders & renders film & writing pages
-const APP_BASE_PATH = '';
+const APP_BASE_PATH = typeof window.__APP_BASE_PATH__ === 'string' ? window.__APP_BASE_PATH__ : detectBasePath();
 const FILMS = Array.isArray(window.FILMS_DATA) ? window.FILMS_DATA : [];
 const WRITINGS = Array.isArray(window.WRITINGS_DATA) ? window.WRITINGS_DATA : [];
 const LIST_CTA_LABEL = 'show more';
@@ -125,6 +125,21 @@ const fogPointer = {
 
 function normalize(path) {
   return path.replace(/\/+$/, '') || '/';
+}
+
+function detectBasePath(pathname = window.location.pathname) {
+  const host = String(window.location.hostname || '').toLowerCase();
+  if (!host.endsWith('.github.io')) return '';
+
+  const segments = String(pathname || '')
+    .split('/')
+    .filter(Boolean);
+  const first = segments[0] || '';
+  if (!first || first === '404.html' || first === 'index.html' || first === 'films' || first === 'writings') {
+    return '';
+  }
+
+  return `/${first}`;
 }
 
 function stripBase(pathname = window.location.pathname) {
