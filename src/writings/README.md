@@ -1,8 +1,8 @@
 # PDF writing files
 
-Each writing detail page now renders a PDF viewer instead of inline prose.
+Each writing detail page links to a PDF file instead of rendering inline prose.
 
-By default, the viewer looks for a PDF named after the writing slug:
+By default, the page looks for a PDF named after the writing slug:
 
 - `src/writings/afterthought.pdf`
 - `src/writings/a-b-c.pdf`
@@ -22,10 +22,10 @@ To customize an individual PDF, add a `pdf` object to the corresponding entry in
   pdf: {
     src: "/src/writings/afterthought.pdf",
     title: "Afterthought screenplay PDF",
-    downloadLabel: "open afterthought",
-    note: "screenplay draft"
+    openLabel: "open afterthought",
+    downloadLabel: "download afterthought"
   }
 }
 ```
 
-Only `src` is needed when the PDF file name does not match the slug; the other fields customize viewer labels.
+Only `src` is needed when the PDF file name does not match the slug; the other fields customize the labels shown on the writing detail page.

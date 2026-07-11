@@ -986,147 +986,80 @@ main {
 }
 
 .writing-detail article {
-  width: min(100%, 980px);
+  width: min(100%, 760px);
   border: 1px solid var(--line);
-  border-radius: 24px;
-  padding: clamp(0.75rem, 2vw, 1.15rem);
+  border-radius: 22px;
+  padding: clamp(0.9rem, 2.2vw, 1.3rem);
   background:
-    radial-gradient(circle at 14% 0%, rgba(255, 218, 177, 0.13), transparent 34%),
+    radial-gradient(circle at 16% 0%, rgba(255, 218, 177, 0.13), transparent 34%),
     linear-gradient(180deg, rgba(23, 24, 31, 0.96), rgba(10, 11, 14, 0.98));
   box-shadow: 0 24px 90px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
-.pdf-viewer-shell {
+.pdf-resource-card {
   display: grid;
-  overflow: hidden;
-  border: 1px solid rgba(255, 226, 196, 0.12);
-  border-radius: 20px;
-  background: rgba(5, 6, 8, 0.54);
-}
-
-.pdf-viewer-topbar,
-.pdf-viewer-controls {
-  display: flex;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
-  justify-content: space-between;
-  gap: 0.9rem;
-  flex-wrap: wrap;
-  padding: 0.85rem clamp(0.85rem, 2vw, 1.2rem);
-  border-bottom: 1px solid rgba(255, 226, 196, 0.11);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.015));
+  gap: clamp(0.9rem, 2.4vw, 1.3rem);
+  padding: clamp(1rem, 3vw, 1.55rem);
+  border: 1px solid rgba(255, 226, 196, 0.14);
+  border-radius: 18px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.015)),
+    rgba(5, 6, 8, 0.58);
 }
 
-.pdf-viewer-topbar h2,
-.pdf-viewer-kicker {
+.pdf-resource-mark {
+  display: inline-grid;
+  width: 4.6rem;
+  aspect-ratio: 1;
+  place-items: center;
+  border: 1px solid rgba(255, 226, 196, 0.18);
+  border-radius: 16px;
+  color: rgba(255, 238, 220, 0.86);
+  background:
+    radial-gradient(circle at 30% 20%, rgba(255, 226, 196, 0.18), transparent 44%),
+    rgba(255, 255, 255, 0.055);
+  font-size: 0.74rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.pdf-resource-copy {
+  min-width: 0;
+}
+
+.pdf-resource-copy h2 {
   margin: 0;
-}
-
-.pdf-viewer-topbar h2 {
   font-family: "Inter", sans-serif;
-  font-size: clamp(0.95rem, 2vw, 1.2rem);
+  font-size: clamp(1rem, 2.2vw, 1.25rem);
   font-weight: 500;
   letter-spacing: -0.02em;
 }
 
-.pdf-viewer-kicker {
-  max-width: 62ch;
-  font-size: 0.72rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--muted);
+.pdf-resource-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.65rem;
+  flex-wrap: wrap;
 }
 
-.pdf-viewer-action {
-  flex: 0 0 auto;
+.pdf-resource-action {
+  white-space: nowrap;
 }
 
-.pdf-viewer-controls {
-  justify-content: flex-start;
-  background: rgba(7, 8, 11, 0.48);
-}
+@media (max-width: 720px) {
+  .pdf-resource-card {
+    grid-template-columns: 1fr;
+  }
 
-.pdf-control-spacer {
-  flex: 1 1 auto;
-}
+  .pdf-resource-mark {
+    width: 3.7rem;
+  }
 
-.pdf-icon-btn,
-.pdf-page-meter,
-.pdf-zoom-meter {
-  display: inline-grid;
-  min-width: 2.2rem;
-  min-height: 2.2rem;
-  place-items: center;
-  border-radius: 999px;
-  font: inherit;
-  color: var(--text);
-}
-
-.pdf-icon-btn {
-  border: 1px solid rgba(255, 226, 196, 0.16);
-  background: rgba(255, 255, 255, 0.055);
-  cursor: pointer;
-}
-
-.pdf-icon-btn:not(:disabled):hover,
-.pdf-icon-btn:not(:disabled):focus-visible {
-  border-color: rgba(255, 226, 196, 0.34);
-  background: rgba(255, 226, 196, 0.12);
-}
-
-.pdf-icon-btn:disabled {
-  cursor: not-allowed;
-  opacity: 0.35;
-}
-
-.pdf-page-meter,
-.pdf-zoom-meter {
-  min-width: 4.4rem;
-  padding: 0 0.75rem;
-  color: var(--muted);
-  background: rgba(255, 255, 255, 0.035);
-}
-
-.pdf-canvas-stage {
-  position: relative;
-  display: grid;
-  justify-items: center;
-  align-items: start;
-  width: 100%;
-  min-height: clamp(560px, 80vh, 940px);
-  padding: clamp(1rem, 3vw, 2rem);
-  overflow: auto;
-  background:
-    radial-gradient(circle at 50% 0%, rgba(255, 226, 196, 0.08), transparent 34%),
-    linear-gradient(135deg, rgba(255, 255, 255, 0.035) 25%, transparent 25%) 0 0 / 26px 26px,
-    linear-gradient(225deg, rgba(255, 255, 255, 0.025) 25%, transparent 25%) 0 0 / 26px 26px,
-    rgba(4, 5, 7, 0.66);
-}
-
-.pdf-canvas-stage canvas {
-  max-width: 100%;
-  height: auto !important;
-  border-radius: 8px;
-  background: #f7f3ec;
-  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.42), 0 0 0 1px rgba(255, 255, 255, 0.08);
-}
-
-.pdf-viewer-status {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  max-width: min(78%, 28rem);
-  transform: translate(-50%, -50%);
-  padding: 0.85rem 1rem;
-  border: 1px solid rgba(255, 226, 196, 0.16);
-  border-radius: 999px;
-  color: var(--muted);
-  background: rgba(8, 9, 12, 0.86);
-  box-shadow: 0 12px 50px rgba(0, 0, 0, 0.36);
-  text-align: center;
-}
-
-.pdf-viewer-status[hidden] {
-  display: none;
+  .pdf-resource-actions {
+    justify-content: flex-start;
+  }
 }
 
 .page--writing-detail *,
