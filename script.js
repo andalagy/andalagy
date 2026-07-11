@@ -5,6 +5,8 @@ const WRITINGS = Array.isArray(window.WRITINGS_DATA) ? window.WRITINGS_DATA : []
 const LIST_CTA_LABEL = 'show more';
 const YOUTUBE_ID_REGEX = /^[A-Za-z0-9_-]{11}$/;
 const EMBED_LOAD_TIMEOUT_MS = 3200;
+const PDFJS_MODULE_URL = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.min.mjs';
+const PDFJS_WORKER_URL = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.worker.min.mjs';
 const SESSION_LOAD_KEY = 'andalagy:load-overlay-played';
 const INTRO_TIMINGS = {
   standard: {
@@ -97,6 +99,7 @@ let floatingTextNearTimer = 0;
 let slateClapTimer = 0;
 let routeEnterCleanupTimer = 0;
 let isSlateCollapsed = false;
+let pdfJsModulePromise = null;
 const animationSeenKeys = new Set();
 const animationRegistry = {
   hasSeen(key) {
@@ -601,6 +604,7 @@ function bindDynamicInteractions() {
   applyScrollDissolve();
   useRevealOnce();
   initYouTubeThumbnailFallbacks();
+  initPdfViewers();
 
   const slate = document.querySelector('[data-slate]');
   slate?.addEventListener('click', handleSlateInteract);
@@ -616,6 +620,138 @@ function bindDynamicInteractions() {
   setupHoverDust();
 
   setupFilmEmbedFallback();
+}
+
+function loadPdfJsModule() {
+  if (!pdfJsModulePromise) {
+    pdfJsModulePromise = import(PDFJS_MODULE_URL).then((pdfjsLib) => {
+      pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS_WORKER_URL;
+      return pdfjsLib;
+    });
+  }
+  return pdfJsModulePromise;
+}
+
+function setPdfStatus(viewer, message, state = '') {
+  const status = viewer.querySelector('[data-pdf-status]');
+  if (!status) return;
+  status.textContent = message;
+  status.hidden = !message;
+  viewer.dataset.pdfState = state;
+}
+
+function updatePdfControls(viewer, state) {
+  const prev = viewer.querySelector('[data-pdf-prev]');
+  const next = viewer.querySelector('[data-pdf-next]');
+  const page = viewer.querySelector('[data-pdf-page]');
+  const pages = viewer.querySelector('[data-pdf-pages]');
+  const zoom = viewer.querySelector('[data-pdf-zoom]');
+  if (prev) prev.disabled = state.pageNumber <= 1 || state.rendering;
+  if (next) next.disabled = state.pageNumber >= state.pageCount || state.rendering;
+  if (page) page.textContent = state.pageNumber;
+  if (pages) pages.textContent = state.pageCount || '–';
+  if (zoom) zoom.textContent = `${Math.round(state.scale * 100)}%`;
+}
+
+function renderPdfPage(viewer, state) {
+  if (!state.pdf || state.rendering) return Promise.resolve();
+  state.rendering = true;
+  updatePdfControls(viewer, state);
+  setPdfStatus(viewer, 'rendering page…', 'rendering');
+
+  const canvas = viewer.querySelector('[data-pdf-canvas]');
+  const stage = viewer.querySelector('[data-pdf-stage]');
+  const context = canvas?.getContext('2d');
+  if (!canvas || !context) {
+    setPdfStatus(viewer, 'canvas is unavailable in this browser.', 'error');
+    state.rendering = false;
+    updatePdfControls(viewer, state);
+    return Promise.resolve();
+  }
+
+  return state.pdf.getPage(state.pageNumber)
+    .then((page) => {
+      const baseViewport = page.getViewport({ scale: 1 });
+      const availableWidth = Math.max(280, (stage?.clientWidth || 760) - 32);
+      const fitScale = availableWidth / baseViewport.width;
+      const viewport = page.getViewport({ scale: fitScale * state.scale });
+      const outputScale = Math.max(1, window.devicePixelRatio || 1);
+
+      canvas.width = Math.floor(viewport.width * outputScale);
+      canvas.height = Math.floor(viewport.height * outputScale);
+      canvas.style.width = `${Math.floor(viewport.width)}px`;
+      canvas.style.height = `${Math.floor(viewport.height)}px`;
+
+      const transform = outputScale !== 1 ? [outputScale, 0, 0, outputScale, 0, 0] : null;
+      return page.render({ canvasContext: context, viewport, transform }).promise;
+    })
+    .then(() => {
+      setPdfStatus(viewer, '', 'ready');
+    })
+    .catch((error) => {
+      console.error('pdf render failed', error);
+      setPdfStatus(viewer, 'unable to render this pdf. try downloading it instead.', 'error');
+    })
+    .finally(() => {
+      state.rendering = false;
+      updatePdfControls(viewer, state);
+    });
+}
+
+function initPdfViewer(viewer) {
+  if (viewer.dataset.pdfBound === 'true') return;
+  viewer.dataset.pdfBound = 'true';
+
+  const state = {
+    pdf: null,
+    pageNumber: 1,
+    pageCount: 0,
+    scale: 1,
+    rendering: false
+  };
+  const src = viewer.dataset.pdfSrc;
+  const rerender = () => renderPdfPage(viewer, state);
+
+  viewer.querySelector('[data-pdf-prev]')?.addEventListener('click', () => {
+    if (state.pageNumber <= 1 || state.rendering) return;
+    state.pageNumber -= 1;
+    rerender();
+  });
+  viewer.querySelector('[data-pdf-next]')?.addEventListener('click', () => {
+    if (state.pageNumber >= state.pageCount || state.rendering) return;
+    state.pageNumber += 1;
+    rerender();
+  });
+  viewer.querySelector('[data-pdf-zoom-out]')?.addEventListener('click', () => {
+    state.scale = Math.max(0.65, Number((state.scale - 0.1).toFixed(2)));
+    rerender();
+  });
+  viewer.querySelector('[data-pdf-zoom-in]')?.addEventListener('click', () => {
+    state.scale = Math.min(1.8, Number((state.scale + 0.1).toFixed(2)));
+    rerender();
+  });
+
+  updatePdfControls(viewer, state);
+  setPdfStatus(viewer, 'loading pdf…', 'loading');
+
+  loadPdfJsModule()
+    .then((pdfjsLib) => pdfjsLib.getDocument(src).promise)
+    .then((pdf) => {
+      state.pdf = pdf;
+      state.pageCount = pdf.numPages;
+      state.pageNumber = Math.min(state.pageNumber, state.pageCount || 1);
+      updatePdfControls(viewer, state);
+      return rerender();
+    })
+    .catch((error) => {
+      console.error('pdf load failed', error);
+      setPdfStatus(viewer, 'pdf viewer could not load. use the download button to open the file.', 'error');
+      updatePdfControls(viewer, state);
+    });
+}
+
+function initPdfViewers() {
+  document.querySelectorAll('[data-pdf-viewer]').forEach(initPdfViewer);
 }
 
 function initYouTubeThumbnailFallbacks() {
