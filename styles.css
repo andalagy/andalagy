@@ -654,7 +654,7 @@ main {
   outline-offset: 3px;
 }
 
-.home-films, .home-writings, .about, .page-section {
+.home-films, .home-writings, .home-scripts, .about, .page-section {
   position: relative;
   margin-top: 4rem;
   padding-top: 1.1rem;
@@ -670,6 +670,7 @@ main {
 
 .home-films::before,
 .home-writings::before,
+.home-scripts::before,
 .about::before,
 .page-section::before {
   content: '';
@@ -684,6 +685,7 @@ main {
 
 .home-films::after,
 .home-writings::after,
+.home-scripts::after,
 .about::after,
 .page-section::after {
   content: '';
@@ -699,6 +701,12 @@ main {
 .film-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1.4rem; align-items: start; }
 
 .writing-grid {
+  display: grid;
+  gap: 1.2rem;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.script-grid {
   display: grid;
   gap: 1.2rem;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -758,6 +766,33 @@ main {
   z-index: 1;
   pointer-events: none;
   background: linear-gradient(180deg, rgba(8, 9, 12, 0.05) 30%, rgba(8, 9, 12, 0.72) 100%);
+}
+
+.script-card .work-tile::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(8, 9, 12, 0.02) 22%, rgba(8, 9, 12, 0.78) 100%);
+}
+
+.script-cover {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 18% 20%, rgba(255, 211, 168, 0.12), transparent 48%),
+    radial-gradient(circle at 82% 78%, rgba(170, 181, 255, 0.1), transparent 52%),
+    linear-gradient(145deg, rgba(28, 29, 35, 0.9), rgba(9, 10, 13, 0.98));
+  transition: filter 0.16s ease-out, transform 0.16s ease-out;
+}
+
+.script-haze {
+  position: absolute;
+  inset: -20%;
+  background: linear-gradient(105deg, transparent 28%, rgba(255, 255, 255, 0.055) 50%, transparent 72%);
+  filter: blur(16px);
+  transform: rotate(-8deg);
 }
 
 .writing-composite-cover {
@@ -892,16 +927,19 @@ main {
 }
 
 .work-card-link:hover .film-image,
+.work-card-link:hover .script-cover,
 .work-card-link:hover .writing-cover-image,
 .work-card-link:hover .writing-text-cover,
 .work-card-link:hover .writing-composite-cover,
 .work-card-link:hover .thumb-placeholder,
 .work-card-link:focus-visible .film-image,
+.work-card-link:focus-visible .script-cover,
 .work-card-link:focus-visible .writing-cover-image,
 .work-card-link:focus-visible .writing-text-cover,
 .work-card-link:focus-visible .writing-composite-cover,
 .work-card-link:focus-visible .thumb-placeholder,
 .work-card-link:focus-within .film-image,
+.work-card-link:focus-within .script-cover,
 .work-card-link:focus-within .writing-cover-image,
 .work-card-link:focus-within .writing-text-cover,
 .work-card-link:focus-within .writing-composite-cover,
@@ -987,6 +1025,17 @@ main {
 
 .writing-detail article {
   width: min(100%, 760px);
+}
+
+.script-detail article {
+  width: min(100%, 760px);
+}
+
+.script-pdf-pending {
+  margin-top: 1rem;
+  color: var(--muted);
+  font-size: 0.82rem;
+  letter-spacing: 0.04em;
 }
 
 .pdf-document-preview {
@@ -1381,7 +1430,8 @@ body.slate-flash::after {
 @media (max-width: 900px) {
   body.home-page main { padding-top: 2.8rem; }
   .film-grid,
-  .writing-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .writing-grid,
+  .script-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .writing-grid .writing-card {
     --slice-count: 2;
     --slice-index: var(--slice-index-2, 0);
@@ -1395,7 +1445,8 @@ body.slate-flash::after {
     font-size: 0.68rem;
   }
   .film-grid,
-  .writing-grid { grid-template-columns: 1fr; }
+  .writing-grid,
+  .script-grid { grid-template-columns: 1fr; }
   .slate-meta {
     display: grid;
     gap: 0.25rem;

@@ -1,7 +1,7 @@
-//animation renders & renders film & writing pages
+// animation renders film and script pages
 const APP_BASE_PATH = typeof window.__APP_BASE_PATH__ === 'string' ? window.__APP_BASE_PATH__ : detectBasePath();
 const FILMS = Array.isArray(window.FILMS_DATA) ? window.FILMS_DATA : [];
-const WRITINGS = Array.isArray(window.WRITINGS_DATA) ? window.WRITINGS_DATA : [];
+const SCRIPTS = Array.isArray(window.SCRIPTS_DATA) ? window.SCRIPTS_DATA : [];
 const LIST_CTA_LABEL = 'show more';
 const YOUTUBE_ID_REGEX = /^[A-Za-z0-9_-]{11}$/;
 const EMBED_LOAD_TIMEOUT_MS = 3200;
@@ -138,7 +138,7 @@ function detectBasePath(pathname = window.location.pathname) {
     .split('/')
     .filter(Boolean);
   const first = segments[0] || '';
-  if (!first || first === '404.html' || first === 'index.html' || first === 'films' || first === 'writings') {
+  if (!first || first === '404.html' || first === 'index.html' || first === 'films' || first === 'scripts') {
     return '';
   }
 
@@ -163,8 +163,9 @@ function routeFromLocation() {
   if (path === '/') return { page: 'home' };
   if (path === '/films') return { page: 'films' };
   if (path.startsWith('/films/')) return { page: 'film', id: decodeURIComponent(path.split('/')[2] || '') };
-  if (path === '/writings') return { page: 'writings' };
-  if (path.startsWith('/writings/')) return { page: 'writing', slug: decodeURIComponent(path.split('/')[2] || '') };
+  if (path === '/scripts') return { page: 'scripts' };
+  if (path.startsWith('/scripts/')) return { page: 'script', slug: decodeURIComponent(path.split('/')[2] || '') };
+  if (path === '/writings' || path.startsWith('/writings/')) return { page: 'home', redirectToHome: true };
   return { page: 'home' };
 }
 
@@ -296,42 +297,22 @@ function filmCard(film, index = 0) {
 
 window.APP_DATA = {
   films: FILMS,
-  writings: WRITINGS
+  scripts: SCRIPTS
 };
 
-function writingDetailPath(slug) {
-  return `/writings/${encodeURIComponent(slug)}`;
+function scriptDetailPath(slug) {
+  return `/scripts/${encodeURIComponent(slug)}`;
 }
 
-const WRITINGS_HERO_IMAGE =
-  'linear-gradient(180deg, rgba(18, 19, 23, 0.75), rgba(10, 10, 13, 0.95))';
-
-function writingTitleSizeClass(title = '') {
-  const length = String(title || '').trim().length;
-  if (length > 40) return 'title--xs';
-  if (length > 26) return 'title--sm';
-  return 'title--lg';
-}
-
-function writingCard(item, index = 0) {
-  const writingPath = writingDetailPath(item.slug);
-  const sliceIndexDesktop = ((index % 4) + 4) % 4;
-  const sliceIndexTablet = ((index % 2) + 2) % 2;
-  const coverImage = item.cover || item.coverImage || WRITINGS_HERO_IMAGE;
-  const mediaMarkup = `<div class="writing-composite-cover" aria-hidden="true" style="--slice-index-4:${sliceIndexDesktop};--slice-index-2:${sliceIndexTablet};--writings-hero-image:${coverImage};">
-      <span class="writing-haze"></span>
-    </div>`;
-
+function scriptCard(item, index = 0) {
+  const mediaMarkup = `<div class="script-cover" aria-hidden="true"><span class="script-haze"></span></div>`;
   return workCard({
-    href: writingPath,
+    href: scriptDetailPath(item.slug),
     title: item.title,
-    description: item.excerpt,
     mediaMarkup,
-    cardClass: 'writing-card',
-    titleClass: writingTitleSizeClass(item.title),
+    cardClass: 'script-card',
     titleInTile: true,
-    subtitleClass: 'writing-excerpt',
-    animKey: `writings:card:${item.slug}`,
+    animKey: `scripts:card:${item.slug}`,
     staggerIndex: index
   });
 }
@@ -368,7 +349,7 @@ function aboutBlock() {
 
 function homeView() {
   const shown = FILMS.slice(0, 4);
-  const shownWritings = WRITINGS.slice(0, 4);
+  const shownScripts = SCRIPTS.slice(0, 4);
   return `<section class="slate-wrap${isSlateCollapsed ? ' is-collapsed' : ''}" id="slate" data-slate-wrap data-anim-key="home:slate:wrap" data-reveal="section">
       <article class="slate" data-slate data-anim-key="home:slate:hero" data-reveal="hero">
         <span class="slate-glow" aria-hidden="true"></span>
@@ -388,15 +369,15 @@ function homeView() {
         <a class="quiet-btn section-cta" href="${toUrl('/films')}" data-link="/films" data-anim-key="home:films:cta" data-reveal="link">${LIST_CTA_LABEL} →</a>
       </div>
     </section>
-    <section class="home-writings" data-anim-key="home:writings:section" data-reveal="section">
+    <section class="home-scripts" data-anim-key="home:scripts:section" data-reveal="section">
       <div class="heading-row">
-        <h2 data-breath-heading data-anim-key="home:writings:heading" data-reveal="heading">writings</h2>
+        <h2 data-breath-heading data-anim-key="home:scripts:heading" data-reveal="heading">scripts</h2>
       </div>
-      <div class="writing-grid" data-anim-key="home:writings:grid" data-reveal="section">
-        ${shownWritings.map(writingCard).join('')}
+      <div class="script-grid" data-anim-key="home:scripts:grid" data-reveal="section">
+        ${shownScripts.map(scriptCard).join('')}
       </div>
       <div class="section-cta-row">
-        <a class="quiet-btn section-cta" href="${toUrl('/writings')}" data-link="/writings" data-anim-key="home:writings:cta" data-reveal="link">${LIST_CTA_LABEL} →</a>
+        <a class="quiet-btn section-cta" href="${toUrl('/scripts')}" data-link="/scripts" data-anim-key="home:scripts:cta" data-reveal="link">${LIST_CTA_LABEL} →</a>
       </div>
     </section>
     ${aboutBlock()}`;
@@ -422,7 +403,7 @@ window.AppUtils = {
   buildEmbedSrc,
   filmFallbackView,
   filmCard,
-  writingCard,
+  scriptCard,
   logDev
 };
 
@@ -431,6 +412,7 @@ async function render(options = {}) {
   const currentToken = ++routeTransitionToken;
   if (!app) return;
   const route = routeFromLocation();
+  if (route.redirectToHome) window.history.replaceState(null, '', toUrl('/'));
 
   const runTransition = !reduceMotion;
   const canTransition = runTransition && app.innerHTML.trim();
@@ -449,8 +431,8 @@ async function render(options = {}) {
   if (route.page === 'home') html = homeView();
   if (route.page === 'films') html = window.WorkPages?.filmsView?.() || '';
   if (route.page === 'film') html = window.WorkPages?.filmDetailView?.(route.id) || '';
-  if (route.page === 'writings') html = window.WorkPages?.writingsView?.() || '';
-  if (route.page === 'writing') html = window.WorkPages?.writingDetailView?.(route.slug) || '';
+  if (route.page === 'scripts') html = window.WorkPages?.scriptsView?.() || '';
+  if (route.page === 'script') html = window.WorkPages?.scriptDetailView?.(route.slug) || '';
 
   app.innerHTML = html;
   document.body.classList.toggle('home-page', route.page === 'home');
@@ -538,8 +520,8 @@ function updateActiveNav(page) {
       (page === 'home' && target === '/') ||
       (page === 'films' && target === '/films') ||
       (page === 'film' && target.startsWith('/films')) ||
-      (page === 'writings' && target.startsWith('/writings')) ||
-      (page === 'writing' && target.startsWith('/writings'));
+      (page === 'scripts' && target.startsWith('/scripts')) ||
+      (page === 'script' && target.startsWith('/scripts'));
     link.classList.toggle('is-active', active);
   });
 }
@@ -549,7 +531,7 @@ function revealElementImmediately(node) {
 }
 
 function useRevealOnce() {
-  if (document.querySelector('.page--writing-detail')) return;
+  if (document.querySelector('.page--script-detail')) return;
   const registry = animationRegistry;
   const nodes = document.querySelectorAll('[data-anim-key]');
   if (!nodes.length) return;
@@ -913,7 +895,7 @@ function runSessionLoadOverlay() {
     { at: 206, run: () => appendLine(`[${ts()}] loading module cluster: ui/net/cache`) },
     { at: 228, run: () => appendLine(`[${ts()}] validating route cache... ${routeId}`) },
     { at: 242, run: () => appendLine(`[${ts()}] warming film index...`) },
-    { at: 248, run: () => appendLine(`[${ts()}] warming writing index...`) },
+    { at: 248, run: () => appendLine(`[${ts()}] warming script index...`) },
     { at: 274, run: () => appendLine(`[${ts()}] resolving shader states...`, 'shader') },
     { at: 292, run: () => appendLine(`[${ts()}] attaching observers...`) },
     { at: 332, run: () => updateLine('shader', `[${ts()}] resolving shader states... ok`) },
@@ -1098,7 +1080,7 @@ function setupMemorySubtitle() {
   const states = {
     slate: 'a room before the story',
     films: 'images that remember',
-    writings: 'words that don\'t explain',
+    scripts: 'pages waiting for a frame',
     about: 'a person, not a pitch'
   };
 
@@ -1120,7 +1102,7 @@ function setupMemorySubtitle() {
   const sections = [
     { node: document.getElementById('slate'), line: states.slate },
     { node: document.getElementById('films'), line: states.films },
-    { node: document.querySelector('.home-writings'), line: states.writings },
+    { node: document.querySelector('.home-scripts'), line: states.scripts },
     { node: document.getElementById('about'), line: states.about }
   ].filter((entry) => entry.node);
   if (!sections.length) return;
@@ -1400,7 +1382,7 @@ function setupWhisperPulse() {
 
 function applyScrollDissolve() {
   if (reduceMotion) return;
-  const sections = document.querySelectorAll('.slate-wrap, .home-films, .home-writings, .about, .page-section');
+  const sections = document.querySelectorAll('.slate-wrap, .home-films, .home-scripts, .about, .page-section');
   if (!sections.length) return;
   const viewportCenter = window.innerHeight * 0.5;
   sections.forEach((section) => {
