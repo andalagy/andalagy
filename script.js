@@ -46,37 +46,15 @@ const WHISPER_LINES = [
 ];
 
 // tuning
-// TRAIL_OPACITY, TEXT_FLOAT_OPACITY, MOTE_COUNT, FLICKER_OPACITY, TRANSITION_MS
+// TRAIL_OPACITY, MOTE_COUNT, FLICKER_OPACITY, TRANSITION_MS
 const DREAM_TUNING = {
   TRAIL_OPACITY: 0.34,
-  TEXT_FLOAT_OPACITY: {
-    desktop: [0.04, 0.1],
-    mobile: [0.03, 0.07]
-  },
   MOTE_COUNT: [10, 22],
   FLICKER_OPACITY: [0.08, 0.16],
   TRANSITION_MS: 620
 };
 
-
 const REVEAL_EASE = 'cubic-bezier(0.2, 0.8, 0.2, 1)';
-
-const FLOATING_TEXT_SNIPPETS = [
-  'a room before the story',
-  'light moves without meaning',
-  'don’t explain it',
-  'something is missing',
-  'the cut arrives late',
-  'you can hear the silence',
-  'memory is a camera',
-  'the ending stays',
-  'the frame waits',
-  'a quiet afterimage',
-  'nothing resolves here',
-  'the room keeps listening',
-  'time slips sideways',
-  'the scene keeps breathing'
-];
 
 const app = document.querySelector('#app');
 const cursor = document.querySelector('.cursor');
@@ -95,7 +73,6 @@ let memorySubtitleFadeTimeout = 0;
 let revealOnceObserver = null;
 let activeMemoryLine = '';
 let filmGateTimer = 0;
-let floatingTextNearTimer = 0;
 let slateClapTimer = 0;
 let routeEnterCleanupTimer = 0;
 let isSlateCollapsed = false;
@@ -177,7 +154,6 @@ function pad2(value) {
   return String(value).padStart(2, '0');
 }
 
-
 function currentSlateValues() {
   return {
     scene: lower(SLATE_META.scene),
@@ -224,15 +200,6 @@ function syncSlateMetaUI() {
       valueNode.textContent = value;
     });
   });
-}
-
-function isDev() {
-  return window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-}
-
-function logDev(message, payload = {}) {
-  if (!isDev()) return;
-  console.info(`[film-embed] ${message}`, payload);
 }
 
 function isValidVideoId(id) {
@@ -403,8 +370,7 @@ window.AppUtils = {
   buildEmbedSrc,
   filmFallbackView,
   filmCard,
-  scriptCard,
-  logDev
+  scriptCard
 };
 
 async function render(options = {}) {
@@ -591,9 +557,6 @@ function bindDynamicInteractions() {
   const slate = document.querySelector('[data-slate]');
   slate?.addEventListener('click', handleSlateInteract);
 
-  const quote = document.querySelector('[data-pull-quote]');
-  if (quote) quote.remove();
-
   setupSlateLightSeed();
   setupClickEcho();
   setupWhisperPulse();
@@ -699,14 +662,12 @@ function setupFilmEmbedFallback() {
 
   if (!isValidVideoId(id)) {
     wrap.dataset.state = 'fallback';
-    logDev('fallback triggered', { id, reason: 'invalid id' });
     return;
   }
 
   if (!iframe) {
     wrap.dataset.state = 'fallback';
     replaceEmbedWithFallback(wrap, film, 'missing iframe');
-    logDev('fallback triggered', { id, reason: 'missing iframe' });
     return;
   }
 
@@ -715,7 +676,6 @@ function setupFilmEmbedFallback() {
     if (settled) return;
     settled = true;
     replaceEmbedWithFallback(wrap, film, 'timeout');
-    logDev('fallback triggered', { id, reason: 'timeout' });
   }, EMBED_LOAD_TIMEOUT_MS);
 
   iframe.addEventListener('load', () => {
@@ -723,7 +683,6 @@ function setupFilmEmbedFallback() {
     settled = true;
     wrap.dataset.state = 'embed';
     window.clearTimeout(timeoutId);
-    logDev('embed loaded', { id, src: iframe.src });
   });
 
   iframe.addEventListener('error', () => {
@@ -731,7 +690,6 @@ function setupFilmEmbedFallback() {
     settled = true;
     window.clearTimeout(timeoutId);
     replaceEmbedWithFallback(wrap, film, 'iframe error');
-    logDev('fallback triggered', { id, reason: 'iframe error' });
   });
 }
 
@@ -1188,92 +1146,6 @@ function spawnDustMotes(tile) {
   window.setTimeout(removeLayer, Math.min(5600, maxDurationMs));
 }
 
-function randomFromRange([min, max]) {
-  return min + Math.random() * (max - min);
-}
-
-function setupFloatingTextLayer() {
-  const existing = document.querySelector('[data-floating-text-layer]');
-  existing?.remove();
-  if (!dreamStack) return;
-
-  const layer = document.createElement('div');
-  layer.className = 'floating-text-layer';
-  layer.dataset.floatingTextLayer = '1';
-  const mobile = window.matchMedia('(max-width: 900px)').matches;
-  const count = reduceMotion
-    ? 3 + Math.floor(Math.random() * 4)
-    : mobile
-      ? 4 + Math.floor(Math.random() * 4)
-      : 6 + Math.floor(Math.random() * 9);
-  const opacityRange = mobile ? DREAM_TUNING.TEXT_FLOAT_OPACITY.mobile : DREAM_TUNING.TEXT_FLOAT_OPACITY.desktop;
-  const lanes = [
-    { x: [2, 20], y: [16, 36] },
-    { x: [3, 19], y: [64, 92] },
-    { x: [80, 97], y: [18, 38] },
-    { x: [80, 96], y: [62, 90] },
-    { x: [4, 16], y: [40, 58] },
-    { x: [84, 96], y: [40, 58] }
-  ];
-
-  for (let i = 0; i < count; i += 1) {
-    const snippet = document.createElement('span');
-    const lane = lanes[i % lanes.length];
-    const phrase = FLOATING_TEXT_SNIPPETS[i % FLOATING_TEXT_SNIPPETS.length];
-    const driftSeconds = randomFromRange([4.2, 9.8]);
-    const rotate = randomFromRange([-2, 2]);
-    const blur = randomFromRange([0, 1.5]);
-    const depth = randomFromRange([0.3, 1]);
-
-    snippet.className = 'floating-text-snippet';
-    snippet.textContent = lower(phrase);
-    snippet.style.left = `${randomFromRange(lane.x).toFixed(2)}%`;
-    snippet.style.top = `${randomFromRange(lane.y).toFixed(2)}%`;
-    snippet.style.setProperty('--text-opacity', randomFromRange(opacityRange).toFixed(3));
-    snippet.style.setProperty('--text-rotation', `${rotate.toFixed(2)}deg`);
-    snippet.style.setProperty('--text-blur', `${blur.toFixed(2)}px`);
-    snippet.style.setProperty('--text-duration', `${driftSeconds.toFixed(2)}s`);
-    snippet.style.setProperty('--text-depth', depth.toFixed(3));
-    snippet.style.setProperty('--text-drift-x', `${randomFromRange([-18, 18]).toFixed(2)}px`);
-    snippet.style.setProperty('--text-drift-y', `${randomFromRange([-24, 24]).toFixed(2)}px`);
-    if (Math.random() > 0.72) snippet.style.mixBlendMode = 'screen';
-    if (reduceMotion) snippet.classList.add('is-static');
-    layer.appendChild(snippet);
-  }
-
-  dreamStack.appendChild(layer);
-  if (reduceMotion || isTouchDevice) return;
-
-  const snippets = Array.from(layer.querySelectorAll('.floating-text-snippet'));
-  const updateShift = (event) => {
-    const nx = (event.clientX / window.innerWidth) - 0.5;
-    const ny = (event.clientY / window.innerHeight) - 0.5;
-    snippets.forEach((snippet) => {
-      const depth = Number(snippet.style.getPropertyValue('--text-depth'));
-      snippet.style.setProperty('--text-shift-x', `${(nx * 12 * depth).toFixed(2)}px`);
-      snippet.style.setProperty('--text-shift-y', `${(ny * 12 * depth).toFixed(2)}px`);
-    });
-  };
-
-  window.addEventListener('mousemove', updateShift, { passive: true });
-  window.addEventListener('mousemove', (event) => {
-    window.clearTimeout(floatingTextNearTimer);
-    floatingTextNearTimer = window.setTimeout(() => {
-      snippets.forEach((snippet) => {
-        const rect = snippet.getBoundingClientRect();
-        const cx = rect.left + rect.width * 0.5;
-        const cy = rect.top + rect.height * 0.5;
-        const distance = Math.hypot(event.clientX - cx, event.clientY - cy);
-        if (distance < 95) {
-          snippet.classList.add('is-near');
-          window.setTimeout(() => snippet.classList.remove('is-near'), 1000);
-        }
-      });
-    }, 90);
-  }, { passive: true });
-}
-
-
 function setupAmbientSeed() {
   const root = document.documentElement;
   root.style.setProperty('--gradient-jitter-a', `${((Math.random() * 12) - 6).toFixed(2)}%`);
@@ -1337,7 +1209,6 @@ function setupFogRevealTracking() {
   if (!fogRaf) fogRaf = window.requestAnimationFrame(loop);
 }
 
-
 function setupClickEcho() {
   document.querySelectorAll('.echo-ring').forEach((ring) => ring.remove());
   document.querySelectorAll('[data-echo-target]').forEach((target) => {
@@ -1398,7 +1269,6 @@ setupCursor();
 setupAmbientSeed();
 setupAmbientDrift();
 setupFogRevealTracking();
-setupFloatingTextLayer();
 setupFilmGateFlicker();
 runSessionLoadOverlay();
 window.addEventListener('scroll', () => window.requestAnimationFrame(applyScrollDissolve), { passive: true });

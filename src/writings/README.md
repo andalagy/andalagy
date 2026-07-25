@@ -1,8 +1,8 @@
-# PDF writing files
+# archived writing PDF files
 
-Each writing detail page renders the first page of its PDF directly in the browser. Clicking the preview opens the original PDF in a new tab, and a small download link remains below it. No separate preview image is required.
+These PDFs and the writing data are intentionally dormant. The public application does not load or link them; keep them here so the writings feature can be restored later.
 
-By default, the page looks for a PDF named after the writing slug:
+The archived detail-page convention maps each writing slug to:
 
 - `src/writings/afterthought.pdf`
 - `src/writings/a-b-c.pdf`

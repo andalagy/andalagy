@@ -24,14 +24,6 @@
 
         if (favicon) favicon.setAttribute("href", iconHref);
 
-        var shortcut = document.querySelector('link[rel="shortcut icon"]');
-        if (!shortcut) {
-          shortcut = document.createElement("link");
-          shortcut.setAttribute("rel", "shortcut icon");
-          shortcut.setAttribute("type", "image/png");
-          document.head.appendChild(shortcut);
-        }
-        shortcut.setAttribute("href", iconHref);
       })();
     </script>
     <link rel="stylesheet" href="styles.css" />
