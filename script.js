@@ -5,6 +5,8 @@ const WRITINGS = Array.isArray(window.WRITINGS_DATA) ? window.WRITINGS_DATA : []
 const LIST_CTA_LABEL = 'show more';
 const YOUTUBE_ID_REGEX = /^[A-Za-z0-9_-]{11}$/;
 const EMBED_LOAD_TIMEOUT_MS = 3200;
+const PDFJS_MODULE_URL = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.min.mjs';
+const PDFJS_WORKER_URL = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.worker.min.mjs';
 const SESSION_LOAD_KEY = 'andalagy:load-overlay-played';
 const INTRO_TIMINGS = {
   standard: {
@@ -97,6 +99,7 @@ let floatingTextNearTimer = 0;
 let slateClapTimer = 0;
 let routeEnterCleanupTimer = 0;
 let isSlateCollapsed = false;
+let pdfJsModulePromise = null;
 const animationSeenKeys = new Set();
 const animationRegistry = {
   hasSeen(key) {
@@ -601,6 +604,7 @@ function bindDynamicInteractions() {
   applyScrollDissolve();
   useRevealOnce();
   initYouTubeThumbnailFallbacks();
+  initPdfPreviews();
 
   const slate = document.querySelector('[data-slate]');
   slate?.addEventListener('click', handleSlateInteract);
@@ -616,6 +620,66 @@ function bindDynamicInteractions() {
   setupHoverDust();
 
   setupFilmEmbedFallback();
+}
+
+function loadPdfJsModule() {
+  if (!pdfJsModulePromise) {
+    pdfJsModulePromise = import(PDFJS_MODULE_URL).then((pdfjsLib) => {
+      pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS_WORKER_URL;
+      return pdfjsLib;
+    });
+  }
+  return pdfJsModulePromise;
+}
+
+function setPdfPreviewState(preview, state) {
+  preview.dataset.pdfState = state;
+}
+
+function renderPdfPreview(preview, pdfjsLib) {
+  const canvas = preview.querySelector('[data-pdf-canvas]');
+  const link = preview.querySelector('.pdf-document-link');
+  const src = preview.dataset.pdfSrc;
+  if (!canvas || !link || !src) {
+    setPdfPreviewState(preview, 'fallback');
+    return Promise.resolve();
+  }
+
+  return pdfjsLib.getDocument(src).promise
+    .then((pdf) => pdf.getPage(1))
+    .then((page) => {
+      const baseViewport = page.getViewport({ scale: 1 });
+      const availableWidth = Math.min(580, Math.max(240, link.clientWidth - 48));
+      const scale = Math.min(1.5, availableWidth / baseViewport.width);
+      const viewport = page.getViewport({ scale });
+      const outputScale = Math.max(1, window.devicePixelRatio || 1);
+      const context = canvas.getContext('2d');
+
+      if (!context) throw new Error('canvas unavailable');
+
+      canvas.width = Math.floor(viewport.width * outputScale);
+      canvas.height = Math.floor(viewport.height * outputScale);
+      canvas.style.width = `${Math.floor(viewport.width)}px`;
+      canvas.style.height = `${Math.floor(viewport.height)}px`;
+
+      return page.render({
+        canvasContext: context,
+        viewport,
+        transform: outputScale === 1 ? null : [outputScale, 0, 0, outputScale, 0, 0]
+      }).promise;
+    })
+    .then(() => setPdfPreviewState(preview, 'ready'))
+    .catch(() => setPdfPreviewState(preview, 'fallback'));
+}
+
+function initPdfPreviews() {
+  const previews = [...document.querySelectorAll('[data-pdf-preview]')];
+  if (!previews.length) return;
+
+  previews.forEach((preview) => setPdfPreviewState(preview, 'loading'));
+  loadPdfJsModule()
+    .then((pdfjsLib) => Promise.all(previews.map((preview) => renderPdfPreview(preview, pdfjsLib))))
+    .catch(() => previews.forEach((preview) => setPdfPreviewState(preview, 'fallback')));
 }
 
 function initYouTubeThumbnailFallbacks() {

@@ -9,8 +9,39 @@
       .replaceAll("'", '&#39;');
   }
 
+  function defaultPdfPath(item) {
+    return `/src/writings/${encodeURIComponent(item.slug)}.pdf`;
+  }
+
+  function pdfDocumentConfig(item) {
+    const pdf = item.pdf && typeof item.pdf === 'object' ? item.pdf : {};
+    const src = item.pdfUrl || pdf.src || defaultPdfPath(item);
+    const downloadLabel = pdf.downloadLabel || item.pdfDownloadLabel || 'download pdf';
+    return { src, downloadLabel };
+  }
+
+  function pdfUrl(src) {
+    if (/^(https?:)?\/\//i.test(src) || String(src).startsWith('data:')) return src;
+    const normalized = String(src || '').startsWith('/') ? src : `/${src}`;
+    return window.AppUtils.toUrl(normalized);
+  }
+
   function writingContentHtml(item) {
-    return `<div class="writing-detail-body">${escapeHtml(item.content)}</div>`;
+    const pdf = pdfDocumentConfig(item);
+    const src = pdfUrl(pdf.src);
+    const title = window.AppUtils.lower(item.title);
+    const accessibleLabel = `open ${title} pdf`;
+    const downloadLabel = window.AppUtils.lower(pdf.downloadLabel);
+    return `<figure class="pdf-document-preview" data-pdf-preview data-pdf-src="${escapeHtml(src)}">
+      <a class="pdf-document-link" href="${escapeHtml(src)}" target="_blank" rel="noopener noreferrer" aria-label="${escapeHtml(accessibleLabel)}">
+        <canvas class="pdf-document-canvas" data-pdf-canvas aria-hidden="true"></canvas>
+        <span class="pdf-document-placeholder" data-pdf-placeholder aria-hidden="true"></span>
+        <span class="pdf-document-open" aria-hidden="true">open pdf</span>
+      </a>
+      <figcaption>
+        <a class="pdf-document-download" href="${escapeHtml(src)}" download>${escapeHtml(downloadLabel)}</a>
+      </figcaption>
+    </figure>`;
   }
 
   function writingDetailView(slug) {
