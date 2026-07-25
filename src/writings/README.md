@@ -1,0 +1,29 @@
+# PDF writing files
+
+Each writing detail page renders the first page of its PDF directly in the browser. Clicking the preview opens the original PDF in a new tab, and a small download link remains below it. No separate preview image is required.
+
+By default, the page looks for a PDF named after the writing slug:
+
+- `src/writings/afterthought.pdf`
+- `src/writings/a-b-c.pdf`
+- `src/writings/keep-calm-and-carry-on.pdf`
+- `src/writings/the-man-in-the-hole.pdf`
+- `src/writings/lull.pdf`
+- `src/writings/room-413.pdf`
+
+To customize an individual PDF, add a `pdf` object to the corresponding entry in `src/writings.js`:
+
+```js
+{
+  slug: "afterthought",
+  title: "Afterthought",
+  excerpt: "...",
+  year: 2026,
+  pdf: {
+    src: "/src/writings/afterthought.pdf",
+    downloadLabel: "download afterthought"
+  }
+}
+```
+
+Set `src` when the PDF file name does not match the slug, and use `downloadLabel` to customize the understated link below the preview.
