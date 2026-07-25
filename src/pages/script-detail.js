@@ -15,7 +15,7 @@
   }
 
   function pdfPreview(item) {
-    if (!item.pdfAvailable) return '<p class="script-pdf-pending">pdf coming soon.</p>';
+    if (!item.pdfUrl) return '<p class="script-pdf-pending">pdf coming soon.</p>';
     const src = pdfUrl(item.pdfUrl);
     const title = window.AppUtils.lower(item.title);
     return `<figure class="pdf-document-preview" data-pdf-preview data-pdf-src="${escapeHtml(src)}">

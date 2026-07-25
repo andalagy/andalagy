@@ -10,7 +10,6 @@
 
     const validId = window.AppUtils.isValidVideoId(cleanId);
     const embedSrc = validId ? window.AppUtils.buildEmbedSrc(cleanId) : '';
-    window.AppUtils.logDev('render detail', { id: cleanId, embedSrc, validId });
 
     return `<section class="page-section detail" data-anim-key="film:${cleanId}:section" data-reveal="section">
       <div class="player-wrap" data-player-wrap data-film-id="${cleanId}" data-state="${validId ? 'embed' : 'fallback'}" data-anim-key="film:${cleanId}:player" data-reveal="section">
