@@ -301,9 +301,9 @@ function workCard({ href, title, description, mediaMarkup, cardClass = '', title
 function aboutBlock() {
   return `<section id="about" class="about" data-anim-key="home:about:block" data-reveal="section">
     <h2 data-breath-heading data-anim-key="home:about:heading" data-reveal="heading">about</h2>
-    <p class="thesis" data-anim-key="home:about:thesis" data-reveal="text">i am a filmmaker and writer drawn to memory, silence, and unresolved feeling. the work leans toward atmosphere over explanation, and keeps meaning slightly out of reach.</p>
+    <p class="thesis" data-anim-key="home:about:thesis" data-reveal="text">i am a director and writer drawn to memory, silence, and unresolved feeling. the work leans toward atmosphere over explanation, and keeps meaning slightly out of reach.</p>
     <p class="contact" data-anim-key="home:about:contact" data-reveal="text">
-      <a href="mailto:g13901913371@gmail.com?subject=hello%20andrew">g13901913371@gmail.com</a>
+      <a href="mailto:g13901913371@gmail.com?subject=hello%20andrew">andalagy@hotmail.com</a>
       ·
       <a href="https://www.youtube.com/@andalagy/" target="_blank" rel="noopener noreferrer" aria-label="youtube">youtube</a>
       ·
