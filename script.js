@@ -552,7 +552,7 @@ function bindDynamicInteractions() {
   applyScrollDissolve();
   useRevealOnce();
   initYouTubeThumbnailFallbacks();
-  initPdfPreviews();
+  initScreenplayViewer();
 
   const slate = document.querySelector('[data-slate]');
   slate?.addEventListener('click', handleSlateInteract);
@@ -577,54 +577,117 @@ function loadPdfJsModule() {
   return pdfJsModulePromise;
 }
 
-function setPdfPreviewState(preview, state) {
-  preview.dataset.pdfState = state;
-}
-
-function renderPdfPreview(preview, pdfjsLib) {
-  const canvas = preview.querySelector('[data-pdf-canvas]');
-  const link = preview.querySelector('.pdf-document-link');
-  const src = preview.dataset.pdfSrc;
-  if (!canvas || !link || !src) {
-    setPdfPreviewState(preview, 'fallback');
-    return Promise.resolve();
+function dissolvePaper(canvas) {
+  const context = canvas.getContext('2d', { willReadFrequently: true });
+  const pixels = context.getImageData(0, 0, canvas.width, canvas.height);
+  const data = pixels.data;
+  for (let index = 0; index < data.length; index += 4) {
+    const red = data[index];
+    const green = data[index + 1];
+    const blue = data[index + 2];
+    const lightness = (red + green + blue) / 3;
+    const colorRange = Math.max(red, green, blue) - Math.min(red, green, blue);
+    if (colorRange < 24) {
+      data[index] = 232;
+      data[index + 1] = 231;
+      data[index + 2] = 227;
+      data[index + 3] = Math.round(255 * Math.pow(1 - lightness / 255, 1.7));
+    } else {
+      data[index + 3] = Math.round(255 * Math.max(0, 1 - lightness / 270));
+    }
   }
-
-  return pdfjsLib.getDocument(src).promise
-    .then((pdf) => pdf.getPage(1))
-    .then((page) => {
-      const baseViewport = page.getViewport({ scale: 1 });
-      const availableWidth = Math.min(580, Math.max(240, link.clientWidth - 48));
-      const scale = Math.min(1.5, availableWidth / baseViewport.width);
-      const viewport = page.getViewport({ scale });
-      const outputScale = Math.max(1, window.devicePixelRatio || 1);
-      const context = canvas.getContext('2d');
-
-      if (!context) throw new Error('canvas unavailable');
-
-      canvas.width = Math.floor(viewport.width * outputScale);
-      canvas.height = Math.floor(viewport.height * outputScale);
-      canvas.style.width = `${Math.floor(viewport.width)}px`;
-      canvas.style.height = `${Math.floor(viewport.height)}px`;
-
-      return page.render({
-        canvasContext: context,
-        viewport,
-        transform: outputScale === 1 ? null : [outputScale, 0, 0, outputScale, 0, 0]
-      }).promise;
-    })
-    .then(() => setPdfPreviewState(preview, 'ready'))
-    .catch(() => setPdfPreviewState(preview, 'fallback'));
+  context.putImageData(pixels, 0, 0);
 }
 
-function initPdfPreviews() {
-  const previews = [...document.querySelectorAll('[data-pdf-preview]')];
-  if (!previews.length) return;
+function accessiblePageText(items) {
+  let previousY = null;
+  return items.reduce((text, item) => {
+    const y = Math.round(item.transform?.[5] || 0);
+    const separator = previousY !== null && Math.abs(y - previousY) > 3 ? '\n' : ' ';
+    previousY = y;
+    return `${text}${separator}${item.str || ''}`;
+  }, '').trim();
+}
 
-  previews.forEach((preview) => setPdfPreviewState(preview, 'loading'));
+async function renderScreenplayPage(pdf, pageNumber, shell) {
+  if (shell.dataset.rendered || !shell.isConnected) return;
+  shell.dataset.rendered = 'loading';
+  const page = await pdf.getPage(pageNumber);
+  if (!shell.isConnected) return;
+  const baseViewport = page.getViewport({ scale: 1 });
+  const cssWidth = Math.min(760, shell.clientWidth || 760);
+  const viewport = page.getViewport({ scale: cssWidth / baseViewport.width });
+  const outputScale = Math.min(2, Math.max(1, window.devicePixelRatio || 1));
+  const canvas = shell.querySelector('canvas');
+  const context = canvas.getContext('2d', { alpha: true });
+  canvas.width = Math.floor(viewport.width * outputScale);
+  canvas.height = Math.floor(viewport.height * outputScale);
+  canvas.style.width = `${viewport.width}px`;
+  canvas.style.height = `${viewport.height}px`;
+  await page.render({
+    canvasContext: context,
+    viewport,
+    background: 'rgba(0,0,0,0)',
+    transform: outputScale === 1 ? null : [outputScale, 0, 0, outputScale, 0, 0]
+  }).promise;
+  dissolvePaper(canvas);
+  const text = await page.getTextContent();
+  shell.querySelector('.screenplay-page-text').textContent = accessiblePageText(text.items);
+  shell.dataset.rendered = 'ready';
+}
+
+function mountScreenplay(pdf, viewer) {
+  const pages = viewer.querySelector('[data-screenplay-pages]');
+  const status = viewer.querySelector('[data-screenplay-status]');
+  const count = viewer.querySelector('[data-page-count]');
+  const shells = Array.from({ length: pdf.numPages }, (_, index) => {
+    const shell = document.createElement('section');
+    shell.className = 'screenplay-page';
+    shell.dataset.page = String(index + 1);
+    shell.setAttribute('aria-label', `page ${index + 1}`);
+    shell.innerHTML = '<canvas aria-hidden="true"></canvas><div class="screenplay-page-text sr-only"></div>';
+    pages.append(shell);
+    return shell;
+  });
+  status.hidden = true;
+  count.textContent = `page 1 / ${pdf.numPages}`;
+  viewer.querySelector('[data-page-previous]').disabled = true;
+
+  let currentPage = 1;
+  const updateCurrent = (page) => {
+    currentPage = page;
+    count.textContent = `page ${page} / ${pdf.numPages}`;
+    viewer.querySelector('[data-page-previous]').disabled = page === 1;
+    viewer.querySelector('[data-page-next]').disabled = page === pdf.numPages;
+  };
+  const renderObserver = new IntersectionObserver((entries) => entries.forEach((entry) => {
+    if (entry.isIntersecting) renderScreenplayPage(pdf, Number(entry.target.dataset.page), entry.target);
+  }), { rootMargin: '120% 0px' });
+  const pageObserver = new IntersectionObserver((entries) => {
+    const visible = entries.filter((entry) => entry.isIntersecting).sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+    if (visible) updateCurrent(Number(visible.target.dataset.page));
+  }, { rootMargin: '-25% 0px -55%', threshold: [0, 0.25, 0.6] });
+  shells.forEach((shell) => { renderObserver.observe(shell); pageObserver.observe(shell); });
+  const goTo = (offset) => shells[Math.min(pdf.numPages, Math.max(1, currentPage + offset)) - 1]
+    .scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
+  viewer.querySelector('[data-page-previous]').addEventListener('click', () => goTo(-1));
+  viewer.querySelector('[data-page-next]').addEventListener('click', () => goTo(1));
+  viewer.addEventListener('keydown', (event) => {
+    if (event.key === 'PageUp' || event.key === 'ArrowLeft') goTo(-1);
+    if (event.key === 'PageDown' || event.key === 'ArrowRight') goTo(1);
+  });
+}
+
+function initScreenplayViewer() {
+  const viewer = document.querySelector('[data-screenplay-viewer]');
+  if (!viewer) return;
   loadPdfJsModule()
-    .then((pdfjsLib) => Promise.all(previews.map((preview) => renderPdfPreview(preview, pdfjsLib))))
-    .catch(() => previews.forEach((preview) => setPdfPreviewState(preview, 'fallback')));
+    .then((pdfjsLib) => pdfjsLib.getDocument(viewer.dataset.pdfSrc).promise)
+    .then((pdf) => { if (viewer.isConnected) mountScreenplay(pdf, viewer); })
+    .catch(() => {
+      const status = viewer.querySelector('[data-screenplay-status]');
+      if (status) status.textContent = 'script could not be loaded.';
+    });
 }
 
 function initYouTubeThumbnailFallbacks() {
