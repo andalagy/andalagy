@@ -1,4 +1,4 @@
-// Render an individual script and the existing styled PDF preview when available.
+// Render the native screenplay reader shell; PDF.js fills it after the route mounts.
 (function () {
   function escapeHtml(text) {
     return String(text || '')
@@ -14,18 +14,20 @@
     return window.AppUtils.toUrl(String(src || '').startsWith('/') ? src : `/${src}`);
   }
 
-  function pdfPreview(item) {
-    if (!item.pdfUrl) return '<p class="script-pdf-pending">pdf coming soon.</p>';
+  function screenplayViewer(item) {
+    if (!item.pdfUrl) return '<p class="screenplay-status">script unavailable.</p>';
     const src = pdfUrl(item.pdfUrl);
     const title = window.AppUtils.lower(item.title);
-    return `<figure class="pdf-document-preview" data-pdf-preview data-pdf-src="${escapeHtml(src)}">
-      <a class="pdf-document-link" href="${escapeHtml(src)}" target="_blank" rel="noopener noreferrer" aria-label="open ${escapeHtml(title)} pdf">
-        <canvas class="pdf-document-canvas" data-pdf-canvas aria-hidden="true"></canvas>
-        <span class="pdf-document-placeholder" data-pdf-placeholder aria-hidden="true"></span>
-        <span class="pdf-document-open" aria-hidden="true">open pdf</span>
-      </a>
-      <figcaption><a class="pdf-document-download" href="${escapeHtml(src)}" download>download pdf</a></figcaption>
-    </figure>`;
+    return `<div class="screenplay-viewer" data-screenplay-viewer data-pdf-src="${escapeHtml(src)}" aria-label="${escapeHtml(title)} screenplay" tabindex="0">
+      <div class="screenplay-controls" aria-label="screenplay controls">
+        <button type="button" data-page-previous aria-label="previous screenplay page">previous</button>
+        <span class="screenplay-page-count" data-page-count aria-live="polite">page — / —</span>
+        <button type="button" data-page-next aria-label="next screenplay page">next</button>
+        <a href="${escapeHtml(src)}" download>download pdf</a>
+      </div>
+      <p class="screenplay-status" data-screenplay-status role="status">loading script…</p>
+      <div class="screenplay-pages" data-screenplay-pages aria-label="screenplay pages"></div>
+    </div>`;
   }
 
   function scriptDetailView(slug) {
@@ -35,7 +37,7 @@
       <h1>${window.AppUtils.lower(item.title)}</h1>
       ${item.synopsis ? `<p class="script-synopsis">${escapeHtml(window.AppUtils.lower(item.synopsis))}</p>` : ''}
       ${item.year ? `<p class="script-year" aria-label="${escapeHtml(item.year)}">${escapeHtml(item.year)}</p>` : ''}
-      <article>${pdfPreview(item)}</article>
+      <article>${screenplayViewer(item)}</article>
     </section>`;
   }
 
