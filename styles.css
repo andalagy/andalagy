@@ -1000,15 +1000,6 @@ main {
   transition: opacity 420ms ease;
 }
 
-.screenplay-page + .screenplay-page { margin-top: 1.1rem; }
-.screenplay-page + .screenplay-page::before {
-  display: block;
-  width: 1.5rem;
-  margin: 0 auto 1.1rem;
-  border-top: 1px solid rgba(232, 231, 227, 0.14);
-  content: '';
-}
-
 .screenplay-page[data-rendered='loading'] { opacity: 0.18; }
 .screenplay-page[data-rendered='ready'] { opacity: 1; }
 
