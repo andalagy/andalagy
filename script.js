@@ -577,36 +577,34 @@ function loadPdfJsModule() {
   return pdfJsModulePromise;
 }
 
-function dissolvePaper(canvas) {
-  const context = canvas.getContext('2d', { willReadFrequently: true });
-  const pixels = context.getImageData(0, 0, canvas.width, canvas.height);
-  const data = pixels.data;
-  for (let index = 0; index < data.length; index += 4) {
-    const red = data[index];
-    const green = data[index + 1];
-    const blue = data[index + 2];
-    const lightness = (red + green + blue) / 3;
-    const colorRange = Math.max(red, green, blue) - Math.min(red, green, blue);
-    if (colorRange < 24) {
-      data[index] = 232;
-      data[index + 1] = 231;
-      data[index + 2] = 227;
-      data[index + 3] = Math.round(255 * Math.pow(1 - lightness / 255, 1.7));
+function screenplayLines(items) {
+  const positioned = items.filter((item) => item.str && item.transform).map((item) => ({
+    text: item.str,
+    x: item.transform[4],
+    y: item.transform[5],
+    width: item.width || 0,
+    fontSize: Math.max(1, Math.hypot(item.transform[2], item.transform[3]))
+  })).sort((a, b) => (b.y - a.y) || (a.x - b.x));
+  const lines = [];
+  positioned.forEach((item) => {
+    const currentLine = lines[lines.length - 1];
+    if (currentLine && Math.abs(currentLine.y - item.y) <= 2) {
+      currentLine.items.push(item);
+      currentLine.y = (currentLine.y + item.y) / 2;
     } else {
-      data[index + 3] = Math.round(255 * Math.max(0, 1 - lightness / 270));
+      lines.push({ y: item.y, items: [item] });
     }
-  }
-  context.putImageData(pixels, 0, 0);
+  });
+  return lines.map((line) => ({ ...line, items: line.items.sort((a, b) => a.x - b.x) }));
 }
 
-function accessiblePageText(items) {
-  let previousY = null;
-  return items.reduce((text, item) => {
-    const y = Math.round(item.transform?.[5] || 0);
-    const separator = previousY !== null && Math.abs(y - previousY) > 3 ? '\n' : ' ';
-    previousY = y;
-    return `${text}${separator}${item.str || ''}`;
-  }, '').trim();
+function naturalLineGap(lines, index) {
+  if (!index) return 0;
+  const distances = lines.slice(1).map((line, lineIndex) => lines[lineIndex].y - line.y).filter((gap) => gap > 2);
+  const sorted = distances.sort((a, b) => a - b);
+  const normal = sorted[Math.floor(sorted.length / 2)] || 12;
+  const sourceGap = Math.max(normal, lines[index - 1].y - lines[index].y);
+  return Math.min(2.75, sourceGap / normal);
 }
 
 async function renderScreenplayPage(pdf, pageNumber, shell) {
@@ -614,25 +612,24 @@ async function renderScreenplayPage(pdf, pageNumber, shell) {
   shell.dataset.rendered = 'loading';
   const page = await pdf.getPage(pageNumber);
   if (!shell.isConnected) return;
-  const baseViewport = page.getViewport({ scale: 1 });
-  const cssWidth = Math.min(760, shell.clientWidth || 760);
-  const viewport = page.getViewport({ scale: cssWidth / baseViewport.width });
-  const outputScale = Math.min(2, Math.max(1, window.devicePixelRatio || 1));
-  const canvas = shell.querySelector('canvas');
-  const context = canvas.getContext('2d', { alpha: true });
-  canvas.width = Math.floor(viewport.width * outputScale);
-  canvas.height = Math.floor(viewport.height * outputScale);
-  canvas.style.width = `${viewport.width}px`;
-  canvas.style.height = `${viewport.height}px`;
-  await page.render({
-    canvasContext: context,
-    viewport,
-    background: 'rgba(0,0,0,0)',
-    transform: outputScale === 1 ? null : [outputScale, 0, 0, outputScale, 0, 0]
-  }).promise;
-  dissolvePaper(canvas);
-  const text = await page.getTextContent();
-  shell.querySelector('.screenplay-page-text').textContent = accessiblePageText(text.items);
+  const viewport = page.getViewport({ scale: 1 });
+  const text = await page.getTextContent({ disableNormalization: false });
+  const lines = screenplayLines(text.items);
+  const lineHeight = 17.04 * 100 / viewport.width;
+  lines.forEach((line, index) => {
+    const row = document.createElement('div');
+    row.className = 'screenplay-line';
+    row.style.setProperty('--line-height', `${lineHeight}cqw`);
+    row.style.setProperty('--line-space', `${lineHeight * (naturalLineGap(lines, index) - 1)}cqw`);
+    line.items.forEach((item) => {
+      const fragment = document.createElement('span');
+      fragment.textContent = item.text;
+      fragment.style.left = `${(item.x - viewport.viewBox[0]) * 100 / viewport.width}%`;
+      fragment.style.fontSize = `${item.fontSize * 100 / viewport.width}cqw`;
+      row.append(fragment);
+    });
+    shell.append(row);
+  });
   shell.dataset.rendered = 'ready';
 }
 
@@ -645,7 +642,6 @@ function mountScreenplay(pdf, viewer) {
     shell.className = 'screenplay-page';
     shell.dataset.page = String(index + 1);
     shell.setAttribute('aria-label', `page ${index + 1}`);
-    shell.innerHTML = '<canvas aria-hidden="true"></canvas><div class="screenplay-page-text sr-only"></div>';
     pages.append(shell);
     return shell;
   });
@@ -660,14 +656,18 @@ function mountScreenplay(pdf, viewer) {
     viewer.querySelector('[data-page-previous]').disabled = page === 1;
     viewer.querySelector('[data-page-next]').disabled = page === pdf.numPages;
   };
-  const renderObserver = new IntersectionObserver((entries) => entries.forEach((entry) => {
-    if (entry.isIntersecting) renderScreenplayPage(pdf, Number(entry.target.dataset.page), entry.target);
-  }), { rootMargin: '120% 0px' });
   const pageObserver = new IntersectionObserver((entries) => {
     const visible = entries.filter((entry) => entry.isIntersecting).sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
     if (visible) updateCurrent(Number(visible.target.dataset.page));
   }, { rootMargin: '-25% 0px -55%', threshold: [0, 0.25, 0.6] });
-  shells.forEach((shell) => { renderObserver.observe(shell); pageObserver.observe(shell); });
+  const rendering = shells.map((shell) => {
+    pageObserver.observe(shell);
+    return renderScreenplayPage(pdf, Number(shell.dataset.page), shell);
+  });
+  Promise.all(rendering).catch(() => {
+    status.hidden = false;
+    status.textContent = 'script could not be rendered.';
+  });
   const goTo = (offset) => shells[Math.min(pdf.numPages, Math.max(1, currentPage + offset)) - 1]
     .scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
   viewer.querySelector('[data-page-previous]').addEventListener('click', () => goTo(-1));
