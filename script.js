@@ -609,14 +609,52 @@ function accessiblePageText(items) {
   }, '').trim();
 }
 
-async function renderScreenplayPage(pdf, pageNumber, shell) {
-  if (shell.dataset.rendered || !shell.isConnected) return;
-  shell.dataset.rendered = 'loading';
+const screenplayPageData = new WeakMap();
+
+function screenplayContentBounds(pdfjsLib, viewport, textContent) {
+  const bounds = textContent.items.reduce((current, item) => {
+    if (!item.str.trim()) return current;
+    const transform = pdfjsLib.Util.transform(viewport.transform, item.transform);
+    const fontHeight = Math.hypot(transform[2], transform[3]);
+    const style = textContent.styles[item.fontName] || {};
+    const ascent = style.ascent ?? (style.descent ? 1 + style.descent : 0.8);
+    const top = transform[5] - fontHeight * ascent;
+    const bottom = top + fontHeight;
+    return {
+      top: Math.min(current.top, top),
+      bottom: Math.max(current.bottom, bottom)
+    };
+  }, { top: Infinity, bottom: -Infinity });
+
+  if (!Number.isFinite(bounds.top) || !Number.isFinite(bounds.bottom)) {
+    return { top: 0, bottom: viewport.height };
+  }
+
+  const edgePadding = 4;
+  return {
+    top: Math.max(0, Math.floor(bounds.top - edgePadding)),
+    bottom: Math.min(viewport.height, Math.ceil(bounds.bottom + edgePadding))
+  };
+}
+
+async function prepareScreenplayPage(pdfjsLib, pdf, pageNumber, shell) {
   const page = await pdf.getPage(pageNumber);
-  if (!shell.isConnected) return;
   const baseViewport = page.getViewport({ scale: 1 });
   const cssWidth = Math.min(760, shell.clientWidth || 760);
   const viewport = page.getViewport({ scale: cssWidth / baseViewport.width });
+  const textContent = await page.getTextContent();
+  const bounds = screenplayContentBounds(pdfjsLib, viewport, textContent);
+  shell.style.aspectRatio = `${viewport.width} / ${Math.max(1, bounds.bottom - bounds.top)}`;
+  screenplayPageData.set(shell, { page, viewport, textContent, contentTop: bounds.top });
+}
+
+async function renderScreenplayPage(pdf, pageNumber, shell) {
+  if (shell.dataset.rendered || !shell.isConnected) return;
+  shell.dataset.rendered = 'loading';
+  const prepared = screenplayPageData.get(shell);
+  const page = prepared?.page || await pdf.getPage(pageNumber);
+  if (!shell.isConnected) return;
+  const viewport = prepared?.viewport || page.getViewport({ scale: 1 });
   const outputScale = Math.min(2, Math.max(1, window.devicePixelRatio || 1));
   const canvas = shell.querySelector('canvas');
   const context = canvas.getContext('2d', { alpha: true });
@@ -624,6 +662,7 @@ async function renderScreenplayPage(pdf, pageNumber, shell) {
   canvas.height = Math.floor(viewport.height * outputScale);
   canvas.style.width = `${viewport.width}px`;
   canvas.style.height = `${viewport.height}px`;
+  canvas.style.transform = `translateY(${-100 * (prepared?.contentTop || 0) / viewport.height}%)`;
   await page.render({
     canvasContext: context,
     viewport,
@@ -631,12 +670,12 @@ async function renderScreenplayPage(pdf, pageNumber, shell) {
     transform: outputScale === 1 ? null : [outputScale, 0, 0, outputScale, 0, 0]
   }).promise;
   dissolvePaper(canvas);
-  const text = await page.getTextContent();
+  const text = prepared?.textContent || await page.getTextContent();
   shell.querySelector('.screenplay-page-text').textContent = accessiblePageText(text.items);
   shell.dataset.rendered = 'ready';
 }
 
-function mountScreenplay(pdf, viewer) {
+async function mountScreenplay(pdfjsLib, pdf, viewer) {
   const pages = viewer.querySelector('[data-screenplay-pages]');
   const status = viewer.querySelector('[data-screenplay-status]');
   const count = viewer.querySelector('[data-page-count]');
@@ -649,6 +688,8 @@ function mountScreenplay(pdf, viewer) {
     pages.append(shell);
     return shell;
   });
+  await Promise.all(shells.map((shell, index) => prepareScreenplayPage(pdfjsLib, pdf, index + 1, shell)));
+  if (!viewer.isConnected) return;
   status.hidden = true;
   count.textContent = `page 1 / ${pdf.numPages}`;
   viewer.querySelector('[data-page-previous]').disabled = true;
@@ -682,8 +723,14 @@ function initScreenplayViewer() {
   const viewer = document.querySelector('[data-screenplay-viewer]');
   if (!viewer) return;
   loadPdfJsModule()
-    .then((pdfjsLib) => pdfjsLib.getDocument(viewer.dataset.pdfSrc).promise)
-    .then((pdf) => { if (viewer.isConnected) mountScreenplay(pdf, viewer); })
+    .then(async (pdfjsLib) => ({
+      pdfjsLib,
+      pdf: await pdfjsLib.getDocument(viewer.dataset.pdfSrc).promise
+    }))
+    .then(async ({ pdfjsLib, pdf }) => {
+      if (!viewer.isConnected) return;
+      await mountScreenplay(pdfjsLib, pdf, viewer);
+    })
     .catch(() => {
       const status = viewer.querySelector('[data-screenplay-status]');
       if (status) status.textContent = 'script could not be loaded.';
