@@ -914,6 +914,79 @@ main {
   animation: none !important;
 }
 
+/* per-item development access */
+.access-gate {
+  min-height: min(62vh, 620px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.access-gate-message {
+  margin: 0 0 clamp(1.8rem, 4vw, 3rem);
+  color: var(--text);
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(1.45rem, 3.2vw, 2.2rem);
+}
+
+.access-gate-form {
+  width: min(100%, 22rem);
+}
+
+.access-gate-form label {
+  display: block;
+  margin-bottom: 0.55rem;
+  color: var(--muted);
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+}
+
+.access-gate-entry {
+  display: flex;
+  align-items: end;
+  gap: 1rem;
+}
+
+.access-gate-entry input {
+  width: 100%;
+  min-width: 0;
+  padding: 0.55rem 0.1rem;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+  color: var(--text);
+  background: transparent;
+  font: inherit;
+  transition: border-color 220ms ease;
+}
+
+.access-gate-entry input:focus-visible {
+  border-color: rgba(232, 231, 227, 0.62);
+  outline: 0;
+}
+
+.access-gate-entry button {
+  padding: 0.55rem 0.1rem;
+  border: 0;
+  color: var(--muted);
+  background: transparent;
+  font: inherit;
+  font-size: 0.7rem;
+  letter-spacing: 0.07em;
+}
+
+.access-gate-entry button:hover,
+.access-gate-entry button:focus-visible { color: var(--text); }
+
+.access-gate-feedback {
+  min-height: 1rem;
+  margin: 0.7rem 0 0;
+  color: var(--muted);
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+}
+
 /* screenplay reader */
 .script-detail {
   width: min(100%, 1040px);
