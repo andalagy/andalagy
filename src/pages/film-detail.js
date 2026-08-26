@@ -18,16 +18,12 @@
 
   function filmContentView(film, cleanId) {
     const validId = window.AppUtils.isValidVideoId(cleanId);
-    const embedSrc = validId ? window.AppUtils.buildEmbedSrc(cleanId) : '';
-
     return `<section class="page-section detail" data-anim-key="film:${cleanId}:section" data-reveal="section">
       <div class="player-wrap" data-player-wrap data-film-id="${cleanId}" data-state="${validId ? 'embed' : 'fallback'}" data-anim-key="film:${cleanId}:player" data-reveal="section">
         <div class="player-ratio">
           ${
             validId
-              ? `<iframe key="${cleanId}" data-film-iframe data-film-id="${cleanId}" src="${embedSrc}" title="${window.AppUtils.lower(
-                  film.title
-                )}" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>`
+              ? `<div data-film-embed-mount data-film-title="${window.AppUtils.lower(film.title)}"></div>`
               : window.AppUtils.filmFallbackView(film, 'invalid id')
           }
         </div>

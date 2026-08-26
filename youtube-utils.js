@@ -1,4 +1,4 @@
-//parse from youtube (mainly thumbnails)
+//validate youtube ids and construct youtube asset urls
 (function attachYouTubeUtils(globalScope) {
   function assertYouTubeId(id) {
     return typeof id === 'string' && /^[A-Za-z0-9_-]{11}$/.test(id);
@@ -49,8 +49,22 @@
     ];
   }
 
+  function buildEmbedUrl(videoId) {
+    if (!assertYouTubeId(videoId)) return '';
+    return `https://www.youtube-nocookie.com/embed/${encodeURIComponent(videoId)}?rel=0&modestbranding=1`;
+  }
+
+  function buildWatchUrl(videoId) {
+    if (!assertYouTubeId(videoId)) return '';
+    return `https://www.youtube.com/watch?v=${encodeURIComponent(videoId)}`;
+  }
+
   globalScope.YouTubeUtils = {
+    isValidVideoId: assertYouTubeId,
+    cleanVideoId,
     extractYouTubeVideoId,
-    getYouTubeThumbnailCandidates
+    getYouTubeThumbnailCandidates,
+    buildEmbedUrl,
+    buildWatchUrl
   };
 })(window);
