@@ -24,7 +24,7 @@ const SLATE_META = {
   take: 4,
   rollPrefix: 'a',
   roll: 5,
-  status: 'in post',
+  status: 'pre prod',
   takeRange: [1, 12]
 };
 
