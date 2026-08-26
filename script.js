@@ -3,8 +3,6 @@ const APP_BASE_PATH = typeof window.__APP_BASE_PATH__ === 'string' ? window.__AP
 const FILMS = Array.isArray(window.FILMS_DATA) ? window.FILMS_DATA : [];
 const SCRIPTS = Array.isArray(window.SCRIPTS_DATA) ? window.SCRIPTS_DATA : [];
 const LIST_CTA_LABEL = 'show more';
-const YOUTUBE_ID_REGEX = /^[A-Za-z0-9_-]{11}$/;
-const EMBED_LOAD_TIMEOUT_MS = 3200;
 const PDFJS_MODULE_URL = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.min.mjs';
 const PDFJS_WORKER_URL = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.worker.min.mjs';
 const SESSION_LOAD_KEY = 'andalagy:load-overlay-played';
@@ -204,36 +202,30 @@ function syncSlateMetaUI() {
 }
 
 function isValidVideoId(id) {
-  return typeof id === 'string' && YOUTUBE_ID_REGEX.test(id);
+  return window.YouTubeUtils.isValidVideoId(id);
 }
 
 function cleanVideoId(id) {
   const raw = String(id || '').trim();
-  if (isValidVideoId(raw)) return raw;
-
-  const utils = window.YouTubeUtils;
-  if (utils?.extractYouTubeVideoId) {
-    const extracted = utils.extractYouTubeVideoId(raw);
-    if (isValidVideoId(extracted)) return extracted;
-  }
-
-  const cleaned = raw.split(/[?&#/]/)[0];
-  return isValidVideoId(cleaned) ? cleaned : '';
+  return window.YouTubeUtils.cleanVideoId(raw)
+    || window.YouTubeUtils.extractYouTubeVideoId(raw)
+    || '';
 }
 
 function buildEmbedSrc(id) {
-  return `https://www.youtube-nocookie.com/embed/${id}?rel=0&modestbranding=1`;
+  const safeId = cleanVideoId(id);
+  return window.YouTubeUtils?.buildEmbedUrl?.(safeId) || '';
 }
 
 function buildWatchUrl(id) {
   const safeId = cleanVideoId(id);
-  return `https://www.youtube.com/watch?v=${safeId}`;
+  return window.YouTubeUtils?.buildWatchUrl?.(safeId) || '';
 }
 
 function thumbCandidates(id) {
   const safeId = cleanVideoId(id);
   if (!safeId) return [];
-  return [`https://img.youtube.com/vi/${encodeURIComponent(safeId)}/hqdefault.jpg`];
+  return window.YouTubeUtils.getYouTubeThumbnailCandidates(safeId);
 }
 
 function renderYouTubeThumbnail({ id, alt, className = '', loading = 'lazy' }) {
@@ -774,7 +766,6 @@ function setupSlateLightSeed() {
 
 function setupFilmEmbedFallback() {
   const wrap = document.querySelector('[data-player-wrap]');
-  const iframe = document.querySelector('[data-film-iframe]');
   if (!wrap) return;
 
   const id = cleanVideoId(wrap.dataset.filmId || '');
@@ -786,32 +777,34 @@ function setupFilmEmbedFallback() {
     return;
   }
 
-  if (!iframe) {
+  const mount = wrap.querySelector('[data-film-embed-mount]');
+  if (!mount) {
     wrap.dataset.state = 'fallback';
-    replaceEmbedWithFallback(wrap, film, 'missing iframe');
+    replaceEmbedWithFallback(wrap, film, 'missing embed mount');
     return;
   }
 
-  let settled = false;
-  const timeoutId = window.setTimeout(() => {
-    if (settled) return;
-    settled = true;
-    replaceEmbedWithFallback(wrap, film, 'timeout');
-  }, EMBED_LOAD_TIMEOUT_MS);
-
+  const iframe = document.createElement('iframe');
+  iframe.dataset.filmIframe = '';
+  iframe.dataset.filmId = id;
+  iframe.title = mount.dataset.filmTitle || lower(film.title);
+  iframe.loading = 'lazy';
+  iframe.referrerPolicy = 'strict-origin-when-cross-origin';
+  iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+  iframe.allowFullscreen = true;
   iframe.addEventListener('load', () => {
-    if (settled) return;
-    settled = true;
+    if (!iframe.isConnected) return;
     wrap.dataset.state = 'embed';
-    window.clearTimeout(timeoutId);
   });
-
   iframe.addEventListener('error', () => {
-    if (settled) return;
-    settled = true;
-    window.clearTimeout(timeoutId);
+    if (!iframe.isConnected) return;
     replaceEmbedWithFallback(wrap, film, 'iframe error');
   });
+
+  // Register lifecycle handlers before assigning src and mounting. A cached or
+  // quickly rejected embed can otherwise finish before the handlers exist.
+  iframe.src = buildEmbedSrc(id);
+  mount.replaceWith(iframe);
 }
 
 function replaceEmbedWithFallback(wrap, film, reason) {
