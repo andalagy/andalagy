@@ -8,6 +8,15 @@
     const film = films.find((item) => window.AppUtils.cleanVideoId(item.youtubeId) === cleanId);
     if (!film) return `<section class="page-section"><h1>film not found</h1></section>`;
 
+    return window.AppUtils.protectedContentView({
+      item: film,
+      type: 'film',
+      id: cleanId,
+      renderContent: () => filmContentView(film, cleanId)
+    });
+  }
+
+  function filmContentView(film, cleanId) {
     const validId = window.AppUtils.isValidVideoId(cleanId);
     const embedSrc = validId ? window.AppUtils.buildEmbedSrc(cleanId) : '';
 

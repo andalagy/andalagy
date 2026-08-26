@@ -8,6 +8,7 @@ const EMBED_LOAD_TIMEOUT_MS = 3200;
 const PDFJS_MODULE_URL = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.min.mjs';
 const PDFJS_WORKER_URL = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.worker.min.mjs';
 const SESSION_LOAD_KEY = 'andalagy:load-overlay-played';
+const CONTENT_UNLOCK_KEY_PREFIX = 'andalagy:content-unlocked:';
 const INTRO_TIMINGS = {
   standard: {
     totalMs: 1540,
@@ -362,6 +363,32 @@ function filmFallbackView(film, reason) {
   </div>`;
 }
 
+function contentUnlockKey(type, id) {
+  return `${CONTENT_UNLOCK_KEY_PREFIX}${type}:${encodeURIComponent(String(id || ''))}`;
+}
+
+function isContentUnlocked(type, id) {
+  return sessionStorage.getItem(contentUnlockKey(type, id)) === '1';
+}
+
+function protectedContentView({ item, type, id, renderContent }) {
+  const password = String(item?.password || '');
+  if (!password || isContentUnlocked(type, id)) return renderContent();
+
+  const message = `this ${type} is under development.`;
+  return `<section class="page-section access-gate" data-access-gate data-content-type="${type}" data-content-id="${encodeURIComponent(id)}" data-reveal="section">
+    <p class="access-gate-message">${message}</p>
+    <form class="access-gate-form" data-access-form novalidate>
+      <label for="access-password">password</label>
+      <div class="access-gate-entry">
+        <input id="access-password" name="password" type="password" autocomplete="current-password" required aria-describedby="access-feedback" />
+        <button type="submit">enter</button>
+      </div>
+      <p class="access-gate-feedback" id="access-feedback" data-access-feedback role="status" aria-live="polite"></p>
+    </form>
+  </section>`;
+}
+
 window.AppUtils = {
   toUrl,
   lower,
@@ -369,6 +396,7 @@ window.AppUtils = {
   isValidVideoId,
   buildEmbedSrc,
   filmFallbackView,
+  protectedContentView,
   filmCard,
   scriptCard
 };
@@ -553,6 +581,7 @@ function bindDynamicInteractions() {
   useRevealOnce();
   initYouTubeThumbnailFallbacks();
   initScreenplayViewer();
+  initContentGate();
 
   const slate = document.querySelector('[data-slate]');
   slate?.addEventListener('click', handleSlateInteract);
@@ -565,6 +594,35 @@ function bindDynamicInteractions() {
   setupHoverDust();
 
   setupFilmEmbedFallback();
+}
+
+function initContentGate() {
+  const gate = document.querySelector('[data-access-gate]');
+  const form = gate?.querySelector('[data-access-form]');
+  if (!gate || !form) return;
+
+  form.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const route = routeFromLocation();
+    const type = gate.dataset.contentType;
+    const id = decodeURIComponent(gate.dataset.contentId || '');
+    const item = type === 'film'
+      ? FILMS.find((film) => cleanVideoId(film.youtubeId) === id)
+      : SCRIPTS.find((script) => script.slug === id);
+    const input = form.elements.password;
+    const feedback = form.querySelector('[data-access-feedback]');
+
+    if (!item || input.value !== String(item.password || '')) {
+      feedback.textContent = 'incorrect password.';
+      input.setAttribute('aria-invalid', 'true');
+      input.select();
+      return;
+    }
+
+    sessionStorage.setItem(contentUnlockKey(type, id), '1');
+    input.removeAttribute('aria-invalid');
+    render({ scrollMode: route.page === 'film' || route.page === 'script' ? 'top' : 'preserve' });
+  });
 }
 
 function loadPdfJsModule() {

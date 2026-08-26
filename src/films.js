@@ -7,6 +7,7 @@
       year: '2025',
       runtime: '3 min',
       role: 'director',
+      password: 'ilovearlo',
       statement: 'finding the bird in a place that no longer remembers it.'
     },
     {
@@ -15,6 +16,7 @@
       year: '2025',
       runtime: '2 min',
       role: 'director',
+      password: '',
       statement: 'an attempt to grow what cannot grow.'
     },
     {
@@ -23,6 +25,7 @@
       year: '2025',
       runtime: '5 min',
       role: 'director',
+      password: '',
       statement: 'a music piece shaped as memory.'
     },
     {
@@ -31,6 +34,7 @@
       year: '2024',
       runtime: '3 min',
       role: 'editor',
+      password: '',
       statement: 'stock footage and near futures.'
     }
   ];
