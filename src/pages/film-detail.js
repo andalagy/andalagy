@@ -27,6 +27,11 @@
               : window.AppUtils.filmFallbackView(film, 'invalid id')
           }
         </div>
+        ${
+          validId
+            ? `<a class="player-watch-link" target="_blank" rel="noopener noreferrer" href="${window.YouTubeUtils.buildWatchUrl(cleanId)}">view on youtube</a>`
+            : ''
+        }
       </div>
       <h1 data-anim-key="film:${cleanId}:title" data-reveal="heading">${window.AppUtils.lower(film.title)}</h1>
       <p data-anim-key="film:${cleanId}:statement" data-reveal="text">${window.AppUtils.lower(film.statement)}</p>
