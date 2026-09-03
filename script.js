@@ -212,16 +212,6 @@ function cleanVideoId(id) {
     || '';
 }
 
-function buildEmbedSrc(id) {
-  const safeId = cleanVideoId(id);
-  return window.YouTubeUtils?.buildEmbedUrl?.(safeId) || '';
-}
-
-function buildWatchUrl(id) {
-  const safeId = cleanVideoId(id);
-  return window.YouTubeUtils?.buildWatchUrl?.(safeId) || '';
-}
-
 function thumbCandidates(id) {
   const safeId = cleanVideoId(id);
   if (!safeId) return [];
@@ -350,7 +340,7 @@ function filmFallbackView(film, reason) {
     ${thumb}
     <div class="film-fallback-copy">
       <p>this video can’t be embedded. watch on youtube.</p>
-      <a class="quiet-btn" target="_blank" rel="noopener noreferrer" href="${buildWatchUrl(film.youtubeId)}">watch on youtube</a>
+      <a class="quiet-btn" target="_blank" rel="noopener noreferrer" href="${window.YouTubeUtils.buildWatchUrl(cleanVideoId(film.youtubeId))}">watch on youtube</a>
     </div>
   </div>`;
 }
@@ -386,7 +376,6 @@ window.AppUtils = {
   lower,
   cleanVideoId,
   isValidVideoId,
-  buildEmbedSrc,
   filmFallbackView,
   protectedContentView,
   filmCard,
@@ -585,7 +574,7 @@ function bindDynamicInteractions() {
   setupMemorySubtitle();
   setupHoverDust();
 
-  setupFilmEmbedFallback();
+  mountFilmEmbed();
 }
 
 function initContentGate() {
@@ -764,7 +753,7 @@ function setupSlateLightSeed() {
   slate.style.setProperty('--slate-delay-c', `${SLATE_LIGHT_SEED.delayC}s`);
 }
 
-function setupFilmEmbedFallback() {
+function mountFilmEmbed() {
   const wrap = document.querySelector('[data-player-wrap]');
   if (!wrap) return;
 
@@ -778,11 +767,7 @@ function setupFilmEmbedFallback() {
   }
 
   const mount = wrap.querySelector('[data-film-embed-mount]');
-  if (!mount) {
-    wrap.dataset.state = 'fallback';
-    replaceEmbedWithFallback(wrap, film, 'missing embed mount');
-    return;
-  }
+  if (!mount || wrap.querySelector('[data-film-iframe]')) return;
 
   const iframe = document.createElement('iframe');
   iframe.dataset.filmIframe = '';
@@ -792,26 +777,8 @@ function setupFilmEmbedFallback() {
   iframe.referrerPolicy = 'strict-origin-when-cross-origin';
   iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
   iframe.allowFullscreen = true;
-  iframe.addEventListener('load', () => {
-    if (!iframe.isConnected) return;
-    wrap.dataset.state = 'embed';
-  });
-  iframe.addEventListener('error', () => {
-    if (!iframe.isConnected) return;
-    replaceEmbedWithFallback(wrap, film, 'iframe error');
-  });
-
-  // Register lifecycle handlers before assigning src and mounting. A cached or
-  // quickly rejected embed can otherwise finish before the handlers exist.
-  iframe.src = buildEmbedSrc(id);
+  iframe.src = window.YouTubeUtils.buildEmbedUrl(id);
   mount.replaceWith(iframe);
-}
-
-function replaceEmbedWithFallback(wrap, film, reason) {
-  wrap.dataset.state = 'fallback';
-  const ratio = wrap.querySelector('.player-ratio');
-  if (!ratio) return;
-  ratio.innerHTML = filmFallbackView(film, reason);
 }
 
 function runSessionLoadOverlay() {

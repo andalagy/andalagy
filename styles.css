@@ -903,6 +903,14 @@ main {
 .film-fallback-copy { padding: 0.9rem; border-top: 1px solid var(--line); background: rgba(0, 0, 0, 0.25); }
 .film-fallback-copy p { margin: 0; }
 .film-fallback-copy .quiet-btn { display: inline-block; margin-top: 0.7rem; }
+.player-watch-link {
+  display: inline-block;
+  margin-top: 0.65rem;
+  color: var(--muted);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: lowercase;
+}
 
 .detail-meta-static,
 .detail-meta-static .meta,
