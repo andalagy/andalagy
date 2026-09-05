@@ -7,25 +7,6 @@
     <base id="app-base" href="/" />
     <title>redirecting…</title>
     <link id="site-favicon" rel="icon" type="image/png" href="src/assets/favicon.png" sizes="any" />
-    <script>
-      (function () {
-        var location = window.location;
-        var host = String(location.hostname || "").toLowerCase();
-        var isGithubProject = host.endsWith(".github.io");
-        var segments = location.pathname.split("/").filter(Boolean);
-        var first = segments[0] || "";
-        var basePath = isGithubProject && first && first !== "404.html" && first !== "index.html" ? "/" + first : "";
-        var baseHref = (basePath || "") + "/";
-        var baseTag = document.getElementById("app-base");
-        var iconHref = (basePath || "") + "/src/assets/favicon.png";
-        var favicon = document.getElementById("site-favicon");
-
-        if (baseTag) baseTag.setAttribute("href", baseHref);
-
-        if (favicon) favicon.setAttribute("href", iconHref);
-
-      })();
-    </script>
     <link rel="stylesheet" href="styles.css" />
     <script>
       (function () {
@@ -35,11 +16,16 @@
         var segments = location.pathname.split('/').filter(Boolean);
         var first = segments[0] || '';
         var basePath = isGithubProject && first && first !== '404.html' && first !== 'index.html' ? '/' + first : '';
+        var baseTag = document.getElementById('app-base');
+        var favicon = document.getElementById('site-favicon');
         var requestPath = basePath ? '/' + segments.slice(1).join('/') : location.pathname;
         var cleanPath = requestPath === '/404.html' ? '/' : requestPath;
         var encodedPath = cleanPath.replace(/&/g, '~and~');
         var encodedSearch = location.search ? '&' + location.search.slice(1).replace(/&/g, '~and~') : '';
         var targetPath = (basePath || '') + '/?/' + encodedPath.replace(/^\//, '') + encodedSearch + location.hash;
+
+        if (baseTag) baseTag.setAttribute('href', (basePath || '') + '/');
+        if (favicon) favicon.setAttribute('href', (basePath || '') + '/src/assets/favicon.png');
 
         if ((location.pathname + location.search + location.hash) === targetPath) return;
         location.replace(targetPath);

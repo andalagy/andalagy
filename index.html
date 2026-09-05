@@ -7,21 +7,6 @@
     <base id="app-base" href="/" />
     <title>andrew yan</title>
     <link id="site-favicon" rel="icon" type="image/png" href="src/assets/favicon.png" sizes="any" />
-    <script>
-      (function () {
-        var location = window.location;
-        var host = String(location.hostname || "").toLowerCase();
-        var isGithubProject = host.endsWith(".github.io");
-        var segments = location.pathname.split("/").filter(Boolean);
-        var first = segments[0] || "";
-        var basePath = isGithubProject && first && first !== "404.html" && first !== "index.html" ? "/" + first : "";
-        var iconHref = (basePath || "") + "/src/assets/favicon.png";
-        var favicon = document.getElementById("site-favicon");
-
-        if (favicon) favicon.setAttribute("href", iconHref);
-
-      })();
-    </script>
     <meta name="description" content="andrew yan films and scripts" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -42,12 +27,14 @@
         const basePath = isGithubProject && first && first !== '404.html' && first !== 'index.html' ? `/${first}` : '';
         const baseHref = `${basePath || ''}/`;
         const baseTag = document.getElementById('app-base');
+        const favicon = document.getElementById('site-favicon');
 
         window.__APP_BASE_PATH__ = basePath;
 
         if (baseTag) {
           baseTag.setAttribute('href', baseHref);
         }
+        if (favicon) favicon.setAttribute('href', `${basePath}/src/assets/favicon.png`);
 
         if (location.search[1] !== '/') return;
 
