@@ -30,6 +30,12 @@
     </div>`;
   }
 
+  function pageCountLabel(pageCount) {
+    const count = Number(pageCount);
+    if (!Number.isInteger(count) || count < 1) return 'pages unavailable';
+    return `${count} ${count === 1 ? 'page' : 'pages'}`;
+  }
+
   function scriptDetailView(slug) {
     const item = (window.APP_DATA?.scripts || []).find((entry) => entry.slug === slug);
     if (!item) return '<section class="page-section"><h1>script not found</h1></section>';
@@ -45,7 +51,9 @@
     return `<section class="page-section script-detail page page--script-detail">
       <h1>${window.AppUtils.lower(item.title)}</h1>
       ${item.synopsis ? `<p class="script-synopsis">${escapeHtml(window.AppUtils.lower(item.synopsis))}</p>` : ''}
-      ${item.year ? `<p class="script-year" aria-label="${escapeHtml(item.year)}">${escapeHtml(item.year)}</p>` : ''}
+      <div class="detail-meta-static script-meta" data-no-reveal>
+        <p class="meta"><span class="meta-item">${escapeHtml(item.year)}</span> · <span class="meta-item" data-script-page-total>${pageCountLabel(item.pageCount)}</span></p>
+      </div>
       <article>${screenplayViewer(item)}</article>
     </section>`;
   }
