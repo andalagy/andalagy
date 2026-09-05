@@ -34,7 +34,6 @@ const SLATE_LIGHT_SEED = {
   driftX: ((Math.random() * 6) - 3).toFixed(2),
   driftY: ((Math.random() * 4) - 2).toFixed(2),
   delayA: (Math.random() * -7).toFixed(2),
-  delayB: (Math.random() * -11).toFixed(2),
   delayC: (Math.random() * -9).toFixed(2)
 };
 
@@ -327,18 +326,6 @@ function homeView() {
     ${aboutBlock()}`;
 }
 
-function filmFallbackView(film, reason) {
-  const thumb = renderYouTubeThumbnail({ id: film.youtubeId, alt: `${lower(film.title)} thumbnail` });
-  const safeReason = lower(reason || 'embed failed');
-  return `<div class="film-fallback" data-film-fallback data-reason="${safeReason}">
-    ${thumb}
-    <div class="film-fallback-copy">
-      <p>this video can’t be embedded. watch on youtube.</p>
-      <a class="quiet-btn" target="_blank" rel="noopener noreferrer" href="${window.YouTubeUtils.getVideoUrls(film.youtubeId)?.watch || ''}">watch on youtube</a>
-    </div>
-  </div>`;
-}
-
 function contentUnlockKey(type, id) {
   return `${CONTENT_UNLOCK_KEY_PREFIX}${type}:${encodeURIComponent(String(id || ''))}`;
 }
@@ -369,7 +356,6 @@ window.AppUtils = {
   toUrl,
   lower,
   cleanVideoId,
-  filmFallbackView,
   protectedContentView,
   filmCard,
   scriptCard
@@ -577,7 +563,6 @@ function initContentGate() {
 
   form.addEventListener('submit', (event) => {
     event.preventDefault();
-    const route = routeFromLocation();
     const type = gate.dataset.contentType;
     const id = decodeURIComponent(gate.dataset.contentId || '');
     const item = type === 'film'
@@ -595,7 +580,7 @@ function initContentGate() {
 
     sessionStorage.setItem(contentUnlockKey(type, id), '1');
     input.removeAttribute('aria-invalid');
-    render({ scrollMode: route.page === 'film' || route.page === 'script' ? 'top' : 'preserve' });
+    render({ scrollMode: 'top' });
   });
 }
 
@@ -614,7 +599,6 @@ function screenplayLines(items) {
     text: item.str,
     x: item.transform[4],
     y: item.transform[5],
-    width: item.width || 0,
     fontSize: Math.max(1, Math.hypot(item.transform[2], item.transform[3]))
   })).sort((a, b) => (b.y - a.y) || (a.x - b.x));
   const lines = [];
@@ -744,7 +728,6 @@ function setupSlateLightSeed() {
   slate.style.setProperty('--slate-drift-x', `${SLATE_LIGHT_SEED.driftX}%`);
   slate.style.setProperty('--slate-drift-y', `${SLATE_LIGHT_SEED.driftY}%`);
   slate.style.setProperty('--slate-delay-a', `${SLATE_LIGHT_SEED.delayA}s`);
-  slate.style.setProperty('--slate-delay-b', `${SLATE_LIGHT_SEED.delayB}s`);
   slate.style.setProperty('--slate-delay-c', `${SLATE_LIGHT_SEED.delayC}s`);
 }
 
@@ -757,11 +740,6 @@ function mountFilmEmbed() {
   if (!film) return;
 
   const urls = window.YouTubeUtils.getVideoUrls(id);
-
-  if (!urls) {
-    wrap.dataset.state = 'fallback';
-    return;
-  }
 
   const mount = wrap.querySelector('[data-film-embed-mount]');
   if (!mount || wrap.querySelector('[data-film-iframe]')) return;

@@ -18,21 +18,12 @@
 
   function filmContentView(film, cleanId) {
     const urls = window.YouTubeUtils.getVideoUrls(cleanId);
-    const validId = Boolean(urls);
     return `<section class="page-section detail" data-anim-key="film:${cleanId}:section" data-reveal="section">
-      <div class="player-wrap" data-player-wrap data-film-id="${cleanId}" data-state="${validId ? 'embed' : 'fallback'}" data-anim-key="film:${cleanId}:player" data-reveal="section">
+      <div class="player-wrap" data-player-wrap data-film-id="${cleanId}" data-anim-key="film:${cleanId}:player" data-reveal="section">
         <div class="player-ratio">
-          ${
-            validId
-              ? `<div data-film-embed-mount data-film-title="${window.AppUtils.lower(film.title)}"></div>`
-              : window.AppUtils.filmFallbackView(film, 'invalid id')
-          }
+          <div data-film-embed-mount data-film-title="${window.AppUtils.lower(film.title)}"></div>
         </div>
-        ${
-          validId
-            ? `<a class="player-watch-link" target="_blank" rel="noopener noreferrer" href="${urls.watch}">view on youtube</a>`
-            : ''
-        }
+        <a class="player-watch-link" target="_blank" rel="noopener noreferrer" href="${urls.watch}">view on youtube</a>
       </div>
       <h1 data-anim-key="film:${cleanId}:title" data-reveal="heading">${window.AppUtils.lower(film.title)}</h1>
       <p data-anim-key="film:${cleanId}:statement" data-reveal="text">${window.AppUtils.lower(film.statement)}</p>
