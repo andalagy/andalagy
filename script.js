@@ -201,10 +201,6 @@ function syncSlateMetaUI() {
   });
 }
 
-function isValidVideoId(id) {
-  return window.YouTubeUtils.isValidVideoId(id);
-}
-
 function cleanVideoId(id) {
   const raw = String(id || '').trim();
   return window.YouTubeUtils.cleanVideoId(raw)
@@ -213,9 +209,7 @@ function cleanVideoId(id) {
 }
 
 function thumbCandidates(id) {
-  const safeId = cleanVideoId(id);
-  if (!safeId) return [];
-  return window.YouTubeUtils.getYouTubeThumbnailCandidates(safeId);
+  return window.YouTubeUtils.getVideoUrls(id)?.thumbnails || [];
 }
 
 function renderYouTubeThumbnail({ id, alt, className = '', loading = 'lazy' }) {
@@ -340,7 +334,7 @@ function filmFallbackView(film, reason) {
     ${thumb}
     <div class="film-fallback-copy">
       <p>this video can’t be embedded. watch on youtube.</p>
-      <a class="quiet-btn" target="_blank" rel="noopener noreferrer" href="${window.YouTubeUtils.buildWatchUrl(cleanVideoId(film.youtubeId))}">watch on youtube</a>
+      <a class="quiet-btn" target="_blank" rel="noopener noreferrer" href="${window.YouTubeUtils.getVideoUrls(film.youtubeId)?.watch || ''}">watch on youtube</a>
     </div>
   </div>`;
 }
@@ -375,7 +369,6 @@ window.AppUtils = {
   toUrl,
   lower,
   cleanVideoId,
-  isValidVideoId,
   filmFallbackView,
   protectedContentView,
   filmCard,
@@ -761,7 +754,9 @@ function mountFilmEmbed() {
   const film = FILMS.find((item) => cleanVideoId(item.youtubeId) === id);
   if (!film) return;
 
-  if (!isValidVideoId(id)) {
+  const urls = window.YouTubeUtils.getVideoUrls(id);
+
+  if (!urls) {
     wrap.dataset.state = 'fallback';
     return;
   }
@@ -773,11 +768,14 @@ function mountFilmEmbed() {
   iframe.dataset.filmIframe = '';
   iframe.dataset.filmId = id;
   iframe.title = mount.dataset.filmTitle || lower(film.title);
-  iframe.loading = 'lazy';
-  iframe.referrerPolicy = 'strict-origin-when-cross-origin';
+  // Detail videos are the primary content, so request them immediately. An
+  // explicit origin referrer also gives YouTube the client identity required
+  // by player error 153 without exposing the route or password-gate state.
+  iframe.loading = 'eager';
+  iframe.referrerPolicy = 'origin';
   iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
   iframe.allowFullscreen = true;
-  iframe.src = window.YouTubeUtils.buildEmbedUrl(id);
+  iframe.src = urls.embed;
   mount.replaceWith(iframe);
 }
 
