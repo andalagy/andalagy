@@ -17,7 +17,8 @@
   }
 
   function filmContentView(film, cleanId) {
-    const validId = window.AppUtils.isValidVideoId(cleanId);
+    const urls = window.YouTubeUtils.getVideoUrls(cleanId);
+    const validId = Boolean(urls);
     return `<section class="page-section detail" data-anim-key="film:${cleanId}:section" data-reveal="section">
       <div class="player-wrap" data-player-wrap data-film-id="${cleanId}" data-state="${validId ? 'embed' : 'fallback'}" data-anim-key="film:${cleanId}:player" data-reveal="section">
         <div class="player-ratio">
@@ -29,7 +30,7 @@
         </div>
         ${
           validId
-            ? `<a class="player-watch-link" target="_blank" rel="noopener noreferrer" href="${window.YouTubeUtils.buildWatchUrl(cleanId)}">view on youtube</a>`
+            ? `<a class="player-watch-link" target="_blank" rel="noopener noreferrer" href="${urls.watch}">view on youtube</a>`
             : ''
         }
       </div>
