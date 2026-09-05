@@ -679,6 +679,8 @@ function mountScreenplay(pdf, viewer) {
   });
   status.hidden = true;
   count.textContent = `page 1 / ${pdf.numPages}`;
+  const detailPageCount = viewer.closest('.script-detail')?.querySelector('[data-script-page-total]');
+  if (detailPageCount) detailPageCount.textContent = `${pdf.numPages} ${pdf.numPages === 1 ? 'page' : 'pages'}`;
   viewer.querySelector('[data-page-previous]').disabled = true;
 
   let currentPage = 1;

@@ -1002,7 +1002,7 @@ main {
 
 .script-detail > h1,
 .script-detail > .script-synopsis,
-.script-detail > .script-year {
+.script-detail > .script-meta {
   width: min(100%, 760px);
 }
 
@@ -1103,7 +1103,7 @@ main {
   .script-detail { padding-inline: clamp(0.55rem, 3vw, 1rem); }
   .script-detail > h1,
   .script-detail > .script-synopsis,
-  .script-detail > .script-year { padding-inline: clamp(0.45rem, 2vw, 0.8rem); }
+  .script-detail > .script-meta { padding-inline: clamp(0.45rem, 2vw, 0.8rem); }
   .screenplay-viewer { margin-top: 1rem; }
   .screenplay-controls { top: 4rem; gap: 0.65rem; padding-inline: 0.7rem; }
   .screenplay-page { scroll-margin-top: 7rem; }
