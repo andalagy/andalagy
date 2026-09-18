@@ -7,7 +7,7 @@
       year: '2025',
       runtime: '3 min',
       role: 'director',
-      password: 'ilovearlo',
+      password: 'secret',
       statement: 'finding the bird in a place that no longer remembers it.'
     },
     {
