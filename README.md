@@ -7,6 +7,4 @@
 
 ---
 
-It already knows it will expire, built to feel certain for a moment and then quietly fall behind.
-
-Nothing is meant to last for long. Everything erodes.
+personal site.
